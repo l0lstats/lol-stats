@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Comparador de Times LoL</title>
+</head>
+<body>
+    <h1>Comparador de Times de League of Legends</h1>
+
+    <label for="liga">Campeonato:</label>
+    <select id="liga" onchange="carregarTimes()">
+        <option value="">-- Selecione --</option>
+        {% for liga in ligas %}
+            <option value="{{ liga }}">{{ liga }}</option>
+        {% endfor %}
+    </select>
+
+    <br><br>
+
+    <label for="time1">Time 1:</label>
+    <select id="time1"></select>
+
+    <label for="time2">Time 2:</label>
+    <select id="time2"></select>
+
+    <br><br>
+    <button onclick="comparar()">Comparar</button>
+
+    <h2>Resultado da Comparação:</h2>
+    <div id="resultado"></div>
+
+    <script>
+        function carregarTimes() {
+            const liga = document.getElementById("liga").value;
+            if (!liga) return;
+
+            fetch('/get_times', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ liga })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const time1 = document.getElementById("time1");
+                const time2 = document.getElementById("time2");
+                time1.innerHTML = '';
+                time2.innerHTML = '';
+
+                data.times.forEach(time => {
+                    let opt1 = document.createElement('option');
+                    let opt2 = document.createElement('option');
+                    opt1.text = opt2.text = time;
+                    opt1.value = opt2.value = time;
+                    time1.add(opt1);
+                    time2.add(opt2);
+                });
+            });
+        }
+
+        function comparar() {
+            const liga = document.getElementById("liga").value;
+            const time1 = document.getElementById("time1").value;
+            const time2 = document.getElementById("time2").value;
+
+            if (!liga || !time1 || !time2) {
+                alert("Selecione o campeonato e os dois times!");
+                return;
+            }
+
+            fetch('/comparar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ liga, time1, time2 })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const r = data;
+                const res = document.getElementById("resultado");
+                res.innerHTML = `
+                    <table border="1" cellpadding="5">
+                        <tr><th></th><th>${r.time1.nome}</th><th>${r.time2.nome}</th></tr>
+                        <tr><td>Vitórias (%)</td><td>${r.time1.Vitórias}</td><td>${r.time2.Vitórias}</td></tr>
+                        <tr><td>Média de Torres</td><td>${r.time1.Torres}</td><td>${r.time2.Torres}</td></tr>
+                        <tr><td>Média de Dragões</td><td>${r.time1.Dragões}</td><td>${r.time2.Dragões}</td></tr>
+                    </table>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
