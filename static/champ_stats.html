@@ -4,34 +4,224 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Champion Stats</title>
-    <link rel="stylesheet" href="champ_stats.css"> <!-- Usa o novo CSS -->
+    <link rel="stylesheet" href="champ_stats.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 <body>
-    <a href="../index.html">
+    <a href="https://mnogpascoa.github.io/lol-comparator/">
         <img src="LogoBanner.png" alt="Logo Banner" class="banner-image">
     </a>
 
+    <datalist id="champions-list"></datalist>
+    <datalist id="leagues-list"></datalist>
+
     <div class="filter-container">
-        <div class="filter-group">
-            <label for="champion-input">Campeão:</label>
-            <input id="champion-input" list="champions-list" placeholder="Digite o nome do campeão">
-            <datalist id="champions-list"></datalist>
-            <div id="champion-image"></div>
+        <!-- Row 1: C1 -->
+        <div class="champ-row">
+            <div class="champ-pair">
+                <div class="filter-group">
+                    <input id="champ1_1" list="champions-list" placeholder="Champion" oninput="updateImage('champ1_1')">
+                </div>
+                <div class="filter-group lane-input">
+                    <select id="lane1_1">
+                        <option value="">Todas</option>
+                        <option value="top">Top</option>
+                        <option value="jng">Jng</option>
+                        <option value="mid">Mid</option>
+                        <option value="bot">Bot</option>
+                        <option value="sup">Sup</option>
+                    </select>
+                </div>
+                <div class="image-group" id="champ1_1-image"></div>
+            </div>
+            <div class="champ-pair">
+                <div class="filter-group">
+                    <input id="champ2_1" list="champions-list" placeholder="Champion" oninput="updateImage('champ2_1')">
+                </div>
+                <div class="filter-group lane-input">
+                    <select id="lane2_1">
+                        <option value="">Todas</option>
+                        <option value="top">Top</option>
+                        <option value="jng">Jng</option>
+                        <option value="mid">Mid</option>
+                        <option value="bot">Bot</option>
+                        <option value="sup">Sup</option>
+                    </select>
+                </div>
+                <div class="image-group" id="champ2_1-image"></div>
+            </div>
         </div>
-        <div class="filter-group">
-            <label for="lane-select">Lane:</label>
-            <select id="lane-select" onchange="updateStats()">
-                <option value="">Todas</option>
-                <option value="top">Top</option>
-                <option value="jng">Jng</option>
-                <option value="mid">Mid</option>
-                <option value="bot">Bot</option>
-                <option value="sup">Sup</option>
-            </select>
+
+        <!-- Row 2: C2 -->
+        <div class="champ-row">
+            <div class="champ-pair">
+                <div class="filter-group">
+                    <input id="champ1_2" list="champions-list" placeholder="Champion" oninput="updateImage('champ1_2')">
+                </div>
+                <div class="filter-group lane-input">
+                    <select id="lane1_2">
+                        <option value="">Todas</option>
+                        <option value="top">Top</option>
+                        <option value="jng">Jng</option>
+                        <option value="mid">Mid</option>
+                        <option value="bot">Bot</option>
+                        <option value="sup">Sup</option>
+                    </select>
+                </div>
+                <div class="image-group" id="champ1_2-image"></div>
+            </div>
+            <div class="champ-pair">
+                <div class="filter-group">
+                    <input id="champ2_2" list="champions-list" placeholder="Champion" oninput="updateImage('champ2_2')">
+                </div>
+                <div class="filter-group lane-input">
+                    <select id="lane2_2">
+                        <option value="">Todas</option>
+                        <option value="top">Top</option>
+                        <option value="jng">Jng</option>
+                        <option value="mid">Mid</option>
+                        <option value="bot">Bot</option>
+                        <option value="sup">Sup</option>
+                    </select>
+                </div>
+                <div class="image-group" id="champ2_2-image"></div>
+            </div>
+        </div>
+
+        <!-- Row 3: C3 -->
+        <div class="champ-row">
+            <div class="champ-pair">
+                <div class="filter-group">
+                    <input id="champ1_3" list="champions-list" placeholder="Champion" oninput="updateImage('champ1_3')">
+                </div>
+                <div class="filter-group lane-input">
+                    <select id="lane1_3">
+                        <option value="">Todas</option>
+                        <option value="top">Top</option>
+                        <option value="jng">Jng</option>
+                        <option value="mid">Mid</option>
+                        <option value="bot">Bot</option>
+                        <option value="sup">Sup</option>
+                    </select>
+                </div>
+                <div class="image-group" id="champ1_3-image"></div>
+            </div>
+            <div class="champ-pair">
+                <div class="filter-group">
+                    <input id="champ2_3" list="champions-list" placeholder="Champion" oninput="updateImage('champ2_3')">
+                </div>
+                <div class="filter-group lane-input">
+                    <select id="lane2_3">
+                        <option value="">Todas</option>
+                        <option value="top">Top</option>
+                        <option value="jng">Jng</option>
+                        <option value="mid">Mid</option>
+                        <option value="bot">Bot</option>
+                        <option value="sup">Sup</option>
+                    </select>
+                </div>
+                <div class="image-group" id="champ2_3-image"></div>
+            </div>
+        </div>
+
+        <!-- Row: Patch and Year -->
+        <div class="champ-row">
+            <div class="filter-group">
+                <label for="patch-filter">Patch:</label>
+                <select id="patch-filter">
+                    <option value="">Todos os Patches</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="year-filter">Ano:</label>
+                <select id="year-filter">
+                    <option value="2025">2025</option>
+                    <option value="">Todos os Anos</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
+                    <option value="2019">2019</option>
+                    <option value="2018">2018</option>
+                    <option value="2017">2017</option>
+                    <option value="2016">2016</option>
+                    <option value="2015">2015</option>
+                    <option value="2014">2014</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Row: Recent Games and League -->
+        <div class="champ-row">
+            <div class="filter-group">
+                <label for="recent-games">Jogos Recentes:</label>
+                <select id="recent-games">
+                    <option value="">Todos os Jogos</option>
+                    <option value="10">Últimos 10 jogos</option>
+                    <option value="20">Últimos 20 jogos</option>
+                    <option value="30">Últimos 30 jogos</option>
+                    <option value="40">Últimos 40 jogos</option>
+                    <option value="50">Últimos 50 jogos</option>
+                    <option value="100">Últimos 100 jogos</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="league-filter">Campeonato:</label>
+                <select id="league-filter">
+                    <option value="">Todos os campeonatos</option>
+                    <option value="tier1">Principais / Tier 1</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Row: Kill Line and Time Line -->
+        <div class="champ-row">
+            <div class="filter-group">
+                <label for="kill-line">Linha Kills:</label>
+                <select id="kill-line">
+                    <option value="19.5">19.5</option>
+                    <option value="20.5">20.5</option>
+                    <option value="21.5">21.5</option>
+                    <option value="22.5">22.5</option>
+                    <option value="23.5">23.5</option>
+                    <option value="24.5">24.5</option>
+                    <option value="25.5">25.5</option>
+                    <option value="26.5" selected>26.5</option>
+                    <option value="27.5">27.5</option>
+                    <option value="28.5">28.5</option>
+                    <option value="29.5">29.5</option>
+                    <option value="30.5">30.5</option>
+                    <option value="31.5">31.5</option>
+                    <option value="32.5">32.5</option>
+                    <option value="33.5">33.5</option>
+                    <option value="34.5">34.5</option>
+                    <option value="35.5">35.5</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="time-line">Linha Tempo:</label>
+                <select id="time-line">
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                    <option value="31" selected>31</option>
+                    <option value="32">32</option>
+                    <option value="33">33</option>
+                    <option value="34">34</option>
+                    <option value="35">35</option>
+                    <option value="36">36</option>
+                </select>
+            </div>
         </div>
     </div>
 
+    <div class="button-container">
+        <button onclick="generateStats()">Stats Individual</button>
+        <button onclick="confrontoDireto()">Confronto Direto</button>
+    </div>
     <div id="champ-stats-table"></div>
 
     <script src="champ_stats.js"></script>
