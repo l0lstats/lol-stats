@@ -28,14 +28,17 @@ body {
     margin-bottom: 10px;
 }
 
-/* Contêiner da tabela ocupa a largura total */
-#games-table {
+/* Contêiner da tabela com rolagem */
+.table-container {
     width: 100vw;
     min-width: 100%;
     flex: 1; /* Ocupa o espaço restante da altura */
-    overflow: auto; /* Rolagem horizontal, se necessário */
+    overflow-y: auto; /* Rolagem vertical */
+    overflow-x: auto; /* Rolagem horizontal, se necessário */
     margin: 0;
     padding: 0;
+    max-height: calc(100vh - 100px); /* Altura máxima, ajustada para #team-info e margem */
+    position: relative; /* Garante contexto para sticky */
 }
 
 /* Estilização da tabela */
@@ -44,14 +47,7 @@ table {
     border-collapse: collapse;
     background-color: #252525; /* Fundo cinza escuro para tabela */
     border: 1px solid #444; /* Borda cinza escura */
-}
-
-/* Contêiner para thead e tbody */
-.table-container {
-    display: block;
-    width: 100%;
-    max-height: calc(100vh - 100px); /* Altura máxima, ajustada para #team-info e margem */
-    overflow-y: auto; /* Rolagem vertical no contêiner */
+    table-layout: fixed; /* Garante layout fixo para colunas */
 }
 
 /* Fixa o cabeçalho da tabela */
@@ -59,7 +55,7 @@ thead {
     background-color: #000000; /* Preto para o cabeçalho */
     position: sticky;
     top: 0; /* Fixo no topo do contêiner */
-    z-index: 1;
+    z-index: 2; /* Garante que fique acima do tbody */
 }
 
 /* Estilização das células do cabeçalho */
@@ -70,6 +66,8 @@ th {
     text-align: left;
     min-width: 50px;
     max-width: 200px;
+    overflow: hidden; /* Evita estouro de texto */
+    text-overflow: ellipsis; /* Adiciona ... se o texto for muito longo */
 }
 
 th:nth-child(1) { /* Coluna Data */
@@ -89,16 +87,13 @@ td {
     min-width: 50px;
     max-width: 200px;
     color: #e0e0e0; /* Texto cinza claro */
+    overflow: hidden; /* Evita estouro de texto */
+    text-overflow: ellipsis; /* Adiciona ... se o texto for muito longo */
 }
 
 /* Linhas alternadas */
 tr:nth-child(even) {
     background-color: #2e2e2e; /* Variação sutil de cinza escuro */
-}
-
-/* Rolagem horizontal se necessário */
-#games-table {
-    overflow-x: auto;
 }
 
 /* Responsividade */

@@ -5,7 +5,7 @@ let dfSide = null;
 let dfResult = null;
 let allTeams = [];
 
-Papa.parse('BaseDadosDesseAno.csv', {
+Papa.parse('BaseDadosTeam.csv', {
     download: true,
     header: true,
     complete: function(results) {

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Champion Stats</title>
+    <link rel="stylesheet" href="champ_stats.css"> <!-- Usa o novo CSS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+<body>
+    <a href="../index.html">
+        <img src="LogoBanner.png" alt="Logo Banner" class="banner-image">
+    </a>
+
+    <div class="filter-container">
+        <div class="filter-group">
+            <label for="champion-input">Campeão:</label>
+            <input id="champion-input" list="champions-list" placeholder="Digite o nome do campeão">
+            <datalist id="champions-list"></datalist>
+            <div id="champion-image"></div>
+        </div>
+        <div class="filter-group">
+            <label for="lane-select">Lane:</label>
+            <select id="lane-select" onchange="updateStats()">
+                <option value="">Todas</option>
+                <option value="top">Top</option>
+                <option value="jng">Jng</option>
+                <option value="mid">Mid</option>
+                <option value="bot">Bot</option>
+                <option value="sup">Sup</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="champ-stats-table"></div>
+
+    <script src="champ_stats.js"></script>
+</body>
+</html>
