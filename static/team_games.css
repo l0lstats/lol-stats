@@ -1,0 +1,112 @@
+/* Reset e estilos globais */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw; /* Largura total da janela */
+    min-width: 100%; /* Evita contração */
+    height: 100vh; /* Altura total da janela */
+    font-family: Arial, sans-serif;
+    background-color: #1e1e1e; /* Cinza muito escuro como fundo principal */
+    display: flex;
+    flex-direction: column; /* Controla a altura */
+    color: #d9d9d9; /* Cinza claro para texto geral */
+}
+
+/* Centraliza o cabeçalho no topo */
+#team-info {
+    width: 100%;
+    text-align: center;
+    padding: 20px 0;
+    background-color: #000000; /* Preto para o cabeçalho */
+    color: white;
+    margin-bottom: 10px;
+}
+
+/* Contêiner da tabela ocupa a largura total */
+#games-table {
+    width: 100vw;
+    min-width: 100%;
+    flex: 1; /* Ocupa o espaço restante da altura */
+    overflow: auto; /* Rolagem horizontal, se necessário */
+    margin: 0;
+    padding: 0;
+}
+
+/* Estilização da tabela */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #252525; /* Fundo cinza escuro para tabela */
+    border: 1px solid #444; /* Borda cinza escura */
+}
+
+/* Contêiner para thead e tbody */
+.table-container {
+    display: block;
+    width: 100%;
+    max-height: calc(100vh - 100px); /* Altura máxima, ajustada para #team-info e margem */
+    overflow-y: auto; /* Rolagem vertical no contêiner */
+}
+
+/* Fixa o cabeçalho da tabela */
+thead {
+    background-color: #000000; /* Preto para o cabeçalho */
+    position: sticky;
+    top: 0; /* Fixo no topo do contêiner */
+    z-index: 1;
+}
+
+/* Estilização das células do cabeçalho */
+th {
+    color: white;
+    border: 1px solid #444; /* Borda cinza escura */
+    padding: 8px;
+    text-align: left;
+    min-width: 50px;
+    max-width: 200px;
+}
+
+th:nth-child(1) { /* Coluna Data */
+    min-width: 80px;
+}
+th:nth-child(5) { /* Coluna Adversário */
+    min-width: 120px;
+}
+
+/* Estilização das células do corpo */
+td {
+    border: 1px solid #444; /* Borda cinza escura */
+    padding: 8px;
+    text-align: left;
+    word-wrap: break-word;
+    white-space: normal;
+    min-width: 50px;
+    max-width: 200px;
+    color: #e0e0e0; /* Texto cinza claro */
+}
+
+/* Linhas alternadas */
+tr:nth-child(even) {
+    background-color: #2e2e2e; /* Variação sutil de cinza escuro */
+}
+
+/* Rolagem horizontal se necessário */
+#games-table {
+    overflow-x: auto;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+    th, td {
+        padding: 4px;
+        font-size: 12px;
+        min-width: 30px;
+        max-width: 150px;
+    }
+}
