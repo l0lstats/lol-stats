@@ -1,9 +1,89 @@
-// Variável global para armazenar os dados do CSV
 let df = null;
 let dfLiga = null;
 let dfSide = null;
 let dfResult = null;
 let allTeams = [];
+let isConfrontoDireto = false; // Flag para controlar o modo
+
+// Função para capitalizar cada palavra
+function capitalizeWords(str) {
+    return str.replace(/\b\w/g, char => char.toUpperCase());
+}
+
+// Função para obter URL da imagem do time
+function getTeamLogoUrl(teamName, variant = 'square', ext = 'webp') {
+    const teamLogoExceptions = {
+        'Beşiktaş Esports': 'Be3F_Esports',
+        'LOUD': 'https://dpm.lol/esport/teams/LLL.webp',
+        'INTZ': 'https://dpm.lol/esport/teams/ITZ.webp',
+        'KaBuM! Ilha das Lendas': 'https://dpm.lol/esport/teams/KBM.webp',
+        'KaBuM! Esports': 'https://dpm.lol/esport/teams/KBM.webp',
+        'Flamengo MDL': 'https://gol.gg/_img/teams_icon/Flamengo_Esportslogo_square.webp',
+        'Bilibili Gaming': 'https://static.flashscore.com/res/image/data/8GDKDOdM-MLEBzXUg.png',
+        "Anyone's Legend": 'https://gol.gg/_img/teams_icon/Anyone_Legendlogo_profile.webp',
+        'Top Esports': 'https://dpm.lol/esport/teams/TES.webp',
+        'Invictus Gaming': 'https://dpm.lol/esport/teams/IG.webp',
+        'Team WE': 'https://gol.gg/_img/teams_icon/team-we-2020.png',
+        'FunPlus Phoenix': 'https://gol.gg/_img/teams_icon/funplus-phoenix-2021.png',
+        'Ninjas in Pyjamas': 'https://gol.gg/_img/teams_icon/Ninjas_in_Pyjamaslogo_profile.webp',
+        'JD Gaming': 'https://gol.gg/_img/teams_icon/jd-gaming-2020.png',
+        'LGD Gaming': 'https://dpm.lol/esport/teams/LGD.webp',
+        'EDward Gaming': 'https://dpm.lol/esport/teams/EDG.webp',
+        'ThunderTalk Gaming': 'https://dpm.lol/esport/teams/TT.webp',
+        'LNG Esports': 'https://gol.gg/_img/teams_icon/lng-esports-2020.png',
+        'Royal Never Give Up': 'https://dpm.lol/esport/teams/RNG.webp',
+        'Ultra Prime': 'https://dpm.lol/esport/teams/UP.webp',
+        'DRX': 'https://gol.gg/_img/teams_icon/DRX-2020.png',
+        'DRX Challengers': 'https://gol.gg/_img/teams_icon/DRX-2020.png',
+        'Gen.G': 'https://dpm.lol/esport/teams/GENG.webp',
+        'Gen.G Global Academy': 'https://dpm.lol/esport/teams/GENG.webp',
+        'Hanwha Life Esports': 'https://dpm.lol/esport/teams/HLE.webp',
+        'Hanwha Life Esports Challengers': 'https://dpm.lol/esport/teams/HLE.webp',
+        'KT Rolster': 'https://dpm.lol/esport/teams/KT.webp',
+        'KT Rolster Challengers': 'https://dpm.lol/esport/teams/KT.webp',
+        'Nongshim RedForce': 'https://dpm.lol/esport/teams/NS.webp',
+        'Nongshim Esports Academy': 'https://dpm.lol/esport/teams/NS.webp',
+        'OKSavingsBank BRION': 'https://dpm.lol/esport/teams/BRO.webp',
+        'OKSavingsBank BRION Challengers': 'https://dpm.lol/esport/teams/BRO.webp',
+        'T1': 'https://dpm.lol/esport/teams/T1.webp',
+        'SK Telecom T1': 'https://dpm.lol/esport/teams/T1.webp',
+        'T1 Esports Academy': 'https://dpm.lol/esport/teams/T1.webp',
+        'BNK FEARX Youth': 'https://dpm.lol/esport/teams/FOX.webp',
+        'DN Freecs': 'https://dpm.lol/esport/teams/DNF.webp',
+        'DN Freecs Challengers': 'https://dpm.lol/esport/teams/DNF.webp',
+        'Dplus KIA Challengers': 'https://gol.gg/_img/teams_icon/Dplus_KIAlogo_profile.webp',
+        'GiantX': 'https://dpm.lol/esport/teams/GX.webp',
+        'Rogue': 'https://dpm.lol/esport/teams/RGE.webp',
+        'Team BDS': 'https://dpm.lol/esport/teams/BDS.webp',
+        'Furia': 'https://dpm.lol/esport/teams/FUR.webp',
+        'Fluxo W7M': 'https://dpm.lol/esport/teams/FX.webp',
+        'RED Canids': 'https://dpm.lol/esport/teams/RED.webp',
+        'Disguised': 'https://dpm.lol/esport/teams/DSG.webp',
+        'Dignitas': 'https://dpm.lol/esport/teams/DIG.webp',
+        'TSM': 'https://dpm.lol/esport/teams/TSM.webp',
+        'LYON': 'https://dpm.lol/esport/teams/LYON.webp',
+        'Shopify Rebellion': 'https://dpm.lol/esport/teams/SR.webp',
+        'Fukuoka SoftBank HAWKS gaming': 'https://dpm.lol/esport/teams/SHG.webp',
+        'MGN Vikings Esports': 'https://dpm.lol/esport/teams/MVKE.webp',
+        'TALON': 'https://dpm.lol/esport/teams/TLN.webp',
+        'Team Secret Whales': 'https://dpm.lol/esport/teams/TS.webp',
+        'Austrian Force willhaben': 'https://dpm.lol/esport/teams/AFW.webp',
+        'Unicorns of Love Sexy Edition': 'https://dpm.lol/esport/teams/USE.webp',
+        'Barça eSports': 'https://dpm.lol/esport/teams/BAR.webp',
+        'GIANTX Pride': 'https://dpm.lol/esport/teams/GXP.webp',
+        'Los Heretics': 'https://dpm.lol/esport/teams/HRTS.webp',
+        'Movistar KOI Fénix': 'https://dpm.lol/esport/teams/KOI.webp',
+        'UCAM Esports': 'https://dpm.lol/esport/teams/UCAM.webp',
+        'Veni Vidi Vici': 'https://dpm.lol/esport/teams/VVV.webp',
+        'Fnatic': 'https://dpm.lol/esport/teams/FNC.webp'
+        
+    };
+    if (teamLogoExceptions[teamName] && teamLogoExceptions[teamName].startsWith('http')) {
+        return teamLogoExceptions[teamName];
+    }
+    const formattedName = teamLogoExceptions[teamName] || capitalizeWords(teamName).replace(/ /g, '_');
+    return `https://gol.gg/_img/teams_icon/${formattedName}logo_${variant}.${ext}`;
+}
 
 Papa.parse('BaseDadosTeam.csv', {
     download: true,
@@ -14,17 +94,21 @@ Papa.parse('BaseDadosTeam.csv', {
             alert('Nenhum dado válido encontrado!');
             return;
         }
-        // Depuração: Verificar os valores de 'date'
         console.log('Dados brutos do CSV:', df);
         df.forEach(row => {
             if (row.date) {
                 const date = new Date(row.date);
                 console.log(`Data: ${row.date}, Ano extraído: ${date.getFullYear()}`);
             }
-        });
+        })
+        carregarTimes();
         carregarLigas();
         carregarSides();
-        carregarTimes();
+        // Adicionar eventos para atualizar dinamicamente
+        document.getElementById('year-filter').onchange = carregarTimes;
+        document.getElementById('liga').onchange = carregarTimes;
+        document.getElementById('side').onchange = carregarTimes;
+        document.getElementById('result-filter').onchange = carregarTimes;
     },
     error: function(error) {
         console.error('Erro ao carregar CSV:', error);
@@ -33,9 +117,8 @@ Papa.parse('BaseDadosTeam.csv', {
 
 function carregarLigas() {
     const yearFilter = document.getElementById('year-filter').value;
-    // Filtro por ano como primeiro passo
     let dfFiltered = yearFilter === '' ? df : df.filter(row => {
-        if (!row.date) return false; // Ignorar linhas sem data
+        if (!row.date) return false;
         const date = new Date(row.date);
         const year = date.getFullYear();
         return !isNaN(year) && year === parseInt(yearFilter);
@@ -54,9 +137,8 @@ function carregarLigas() {
 
 function carregarSides() {
     const yearFilter = document.getElementById('year-filter').value;
-    // Filtro por ano como primeiro passo
     let dfFiltered = yearFilter === '' ? df : df.filter(row => {
-        if (!row.date) return false; // Ignorar linhas sem data
+        if (!row.date) return false;
         const date = new Date(row.date);
         const year = date.getFullYear();
         return !isNaN(year) && year === parseInt(yearFilter);
@@ -91,27 +173,19 @@ function carregarTimes() {
     const time1Selecionado = time1Input.value;
     const time2Selecionado = time2Input.value;
 
-    // Filtro por ano como primeiro passo
     let dfFiltered = yearFilter === '' ? df : df.filter(row => {
-        if (!row.date) return false; // Ignorar linhas sem data
+        if (!row.date) return false;
         const date = new Date(row.date);
         const year = date.getFullYear();
         return !isNaN(year) && year === parseInt(yearFilter);
     });
 
-    // Depuração: Verificar os dados filtrados por ano
     console.log(`Filtro de ano aplicado: ${yearFilter}, Total de linhas após filtro: ${dfFiltered.length}`);
 
-    // Filtro por liga
     let dfLiga = liga ? dfFiltered.filter(row => row.league === liga) : dfFiltered;
-
-    // Filtro por lado
     let dfSide = side ? dfLiga.filter(row => row.side === side) : dfLiga;
-
-    // Filtro por resultado (Vitórias/Derrotas)
     let dfResult = resultFilter !== '' ? dfSide.filter(row => parseInt(row.result) === parseInt(resultFilter)) : dfSide;
 
-    // Extrair times disponíveis após todos os filtros
     const times = [...new Set(dfResult.map(row => row.teamname).filter(time => time))].sort();
     const datalist = document.getElementById('times-list');
     datalist.innerHTML = '';
@@ -121,9 +195,25 @@ function carregarTimes() {
         datalist.appendChild(option);
     });
 
-    // Manter seleções válidas nos inputs de time, mesmo se não houver dados para o ano
-    time1Input.value = time1Selecionado; // Preserva o valor anterior
-    if (time2Selecionado) time2Input.value = time2Selecionado; // Preserva o valor anterior
+    // Gerar links visíveis
+    const teamLinks = document.getElementById('team-links');
+    if (teamLinks) {
+        teamLinks.innerHTML = '';
+        times.forEach(time => {
+            const link = document.createElement('a');
+            link.href = generateTeamGamesLink(time);
+            link.textContent = time;
+            link.onclick = (e) => {
+                e.preventDefault();
+                window.location.href = link.href;
+            };
+            teamLinks.appendChild(link);
+            teamLinks.appendChild(document.createTextNode(' '));
+        });
+    }
+
+    time1Input.value = time1Selecionado;
+    if (time2Selecionado) time2Input.value = time2Selecionado;
 }
 
 function calcularKillStats(dados, killLine) {
@@ -261,7 +351,7 @@ function gerarTitulo(time1, time2, side, liga, resultFilter, recentGames, yearFi
     
     if (time1) {
         const link1 = document.createElement('a');
-        link1.href = `team_games.html?teamname=${encodeURIComponent(time1)}`;
+        link1.href = generateTeamGamesLink(time1);
         link1.target = '_blank';
         link1.textContent = time1;
         h2.appendChild(link1);
@@ -270,7 +360,7 @@ function gerarTitulo(time1, time2, side, liga, resultFilter, recentGames, yearFi
     if (time2 && time1 !== time2) {
         h2.appendChild(document.createTextNode(` ${separator} `));
         const link2 = document.createElement('a');
-        link2.href = `team_games.html?teamname=${encodeURIComponent(time2)}`;
+        link2.href = generateTeamGamesLink(time2);
         link2.target = '_blank';
         link2.textContent = time2;
         h2.appendChild(link2);
@@ -280,12 +370,13 @@ function gerarTitulo(time1, time2, side, liga, resultFilter, recentGames, yearFi
     if (liga) h2.appendChild(document.createTextNode(` (${liga})`));
     if (resultFilter !== '') h2.appendChild(document.createTextNode(` (${resultFilter === '1' ? 'Vitórias' : 'Derrotas'})`));
     if (recentGames) h2.appendChild(document.createTextNode(` (Últimos ${recentGames} jogos)`));
-    if (yearFilter !== '') h2.appendChild(document.createTextNode(` (${yearFilter})`)); // Adiciona o ano ao título
+    if (yearFilter !== '') h2.appendChild(document.createTextNode(` (${yearFilter})`));
     
     return h2;
 }
 
 function comparar() {
+    isConfrontoDireto = false; // Desativar modo confronto ao usar Stats Individual
     const liga = document.getElementById('liga').value;
     const side = document.getElementById('side').value;
     const resultFilter = document.getElementById('result-filter').value;
@@ -301,9 +392,8 @@ function comparar() {
     let time1 = document.getElementById('time1').value;
     const time2 = document.getElementById('time2').value;
 
-    // Se time1 estiver vazio e time2 tiver valor, usar time2 como time1 internamente
     if (!time1 && time2) {
-        time1 = time2; // Usa time2 como time1 nos cálculos, sem alterar o campo visual
+        time1 = time2;
     }
 
     if (!time1) {
@@ -311,18 +401,15 @@ function comparar() {
         return;
     }
 
-    // Filtro por ano como primeiro passo
     let dfFiltered = yearFilter === '' ? df : df.filter(row => {
-        if (!row.date) return false; // Ignorar linhas sem data
+        if (!row.date) return false;
         const date = new Date(row.date);
         const year = date.getFullYear();
         return !isNaN(year) && year === parseInt(yearFilter);
     });
 
-    // Depuração: Verificar os dados filtrados por ano
     console.log(`Filtro de ano aplicado: ${yearFilter}, Total de linhas após filtro: ${dfFiltered.length}`);
 
-    // Aplicar filtros subsequentes
     let dfLiga = liga ? dfFiltered.filter(row => row.league === liga) : dfFiltered;
     let dfSide = side ? dfLiga.filter(row => row.side === side) : dfLiga;
     let dfResult = resultFilter !== '' ? dfSide.filter(row => parseInt(row.result) === parseInt(resultFilter)) : dfSide;
@@ -335,7 +422,6 @@ function comparar() {
         if (time2 && time1 !== time2) dadosTime2 = dadosTime2.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
     }
 
-    // Verificar se há dados para os times selecionados
     if (dadosTime1.length === 0 && (!time2 || dadosTime2.length === 0)) {
         alert('Dados insuficientes para os times selecionados no ano escolhido!');
         return;
@@ -383,9 +469,52 @@ function comparar() {
     console.log('Conteúdo da tabela (sem título):', tableContent);
 
     const resultado = document.getElementById('resultado');
-    resultado.innerHTML = ''; // Limpar conteúdo anterior
-    const h2 = gerarTitulo(time1, time2, side, liga, resultFilter, recentGames, yearFilter, '&');
+    resultado.innerHTML = '';
+    const h2 = gerarTitulo(time1, time2, side, liga, resultFilter, recentGames, yearFilter, ' | ');
     
+    const teamLogos = document.getElementById('team-logos');
+    teamLogos.innerHTML = '';
+    if (time1) {
+        const img1 = document.createElement('img');
+        img1.src = getTeamLogoUrl(time1, 'square', 'webp');
+        img1.alt = `${time1} Logo`;
+        img1.onload = () => console.log(`Imagem ${time1} carregada: ${img1.src}, Dimensões: ${img1.naturalWidth}x${img1.naturalHeight}px`);
+        img1.onerror = () => {
+            img1.src = getTeamLogoUrl(time1, 'square', 'png');
+            img1.onerror = () => {
+                img1.src = getTeamLogoUrl(time1, 'profile', 'webp');
+                img1.onerror = () => {
+                    img1.src = getTeamLogoUrl(time1, 'profile', 'png');
+                    img1.onerror = () => {
+                        img1.src = 'https://media.tenor.com/_aAExG9FQDEAAAAj/league-of-legends-riot-games.gif';
+                        console.log(`Falha ao carregar imagem de ${time1}`);
+                    };
+                };
+            };
+        };
+        teamLogos.appendChild(img1);
+    }
+    if (time2 && time1 !== time2) {
+        const img2 = document.createElement('img');
+        img2.src = getTeamLogoUrl(time2, 'square', 'webp');
+        img2.alt = `${time2} Logo`;
+        img2.onload = () => console.log(`Imagem ${time2} carregada: ${img2.src}, Dimensões: ${img2.naturalWidth}x${img2.naturalHeight}px`);
+        img2.onerror = () => {
+            img2.src = getTeamLogoUrl(time2, 'square', 'png');
+            img2.onerror = () => {
+                img2.src = getTeamLogoUrl(time2, 'profile', 'webp');
+                img2.onerror = () => {
+                    img2.src = getTeamLogoUrl(time2, 'profile', 'png');
+                    img2.onerror = () => {
+                        img2.src = 'https://media.tenor.com/W_GgSsF7x9sAAAAi/amumu-sad.gif';
+                        console.log(`Falha ao carregar imagem de ${time2}`);
+                    };
+                };
+            };
+        };
+        teamLogos.appendChild(img2);
+    }
+
     resultado.appendChild(h2);
     resultado.insertAdjacentHTML('beforeend', tableContent);
     
@@ -393,6 +522,7 @@ function comparar() {
 }
 
 function confrontoDireto() {
+    isConfrontoDireto = true; // Ativar modo confronto
     const liga = document.getElementById('liga').value;
     const side = document.getElementById('side').value;
     const resultFilter = document.getElementById('result-filter').value;
@@ -408,9 +538,8 @@ function confrontoDireto() {
     let time1 = document.getElementById('time1').value;
     const time2 = document.getElementById('time2').value;
 
-    // Se time1 estiver vazio e time2 tiver valor, usar time2 como time1 internamente
     if (!time1 && time2) {
-        time1 = time2; // Usa time2 como time1 nos cálculos, sem alterar o campo visual
+        time1 = time2;
     }
 
     if (!time1 || !time2 || time1 === time2) {
@@ -418,18 +547,15 @@ function confrontoDireto() {
         return;
     }
 
-    // Filtro por ano como primeiro passo
     let dfFiltered = yearFilter === '' ? df : df.filter(row => {
-        if (!row.date) return false; // Ignorar linhas sem data
+        if (!row.date) return false;
         const date = new Date(row.date);
         const year = date.getFullYear();
         return !isNaN(year) && year === parseInt(yearFilter);
     });
 
-    // Depuração: Verificar os dados filtrados por ano
     console.log(`Filtro de ano aplicado: ${yearFilter}, Total de linhas após filtro: ${dfFiltered.length}`);
 
-    // Aplicar filtros subsequentes
     let dfLiga = liga ? dfFiltered.filter(row => row.league === liga) : dfFiltered;
     let dfSide = side ? dfLiga.filter(row => row.side === side) : dfLiga;
     let dfResult = resultFilter !== '' ? dfSide.filter(row => parseInt(row.result) === parseInt(resultFilter)) : dfSide;
@@ -442,7 +568,6 @@ function confrontoDireto() {
         dadosTime2 = dadosTime2.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
     }
 
-    // Verificar se há dados para os times selecionados
     if (dadosTime1.length === 0 && dadosTime2.length === 0) {
         alert('Nenhum confronto direto encontrado entre os times selecionados no ano escolhido!');
         return;
@@ -476,11 +601,93 @@ function confrontoDireto() {
     console.log('Conteúdo da tabela (sem título):', tableContent);
 
     const resultado = document.getElementById('resultado');
-    resultado.innerHTML = ''; // Limpar conteúdo anterior
+    resultado.innerHTML = '';
     const h2 = gerarTitulo(time1, time2, side, liga, resultFilter, recentGames, yearFilter, 'vs');
     
+    const teamLogos = document.getElementById('team-logos');
+    teamLogos.innerHTML = '';
+    if (time1) {
+        const img1 = document.createElement('img');
+        img1.src = getTeamLogoUrl(time1, 'square', 'webp');
+        img1.alt = `${time1} Logo`;
+        img1.onload = () => console.log(`Imagem ${time1} carregada: ${img1.src}, Dimensões: ${img1.naturalWidth}x${img1.naturalHeight}px`);
+        img1.onerror = () => {
+            img1.src = getTeamLogoUrl(time1, 'square', 'png');
+            img1.onerror = () => {
+                img1.src = getTeamLogoUrl(time1, 'profile', 'webp');
+                img1.onerror = () => {
+                    img1.src = getTeamLogoUrl(time1, 'profile', 'png');
+                    img1.onerror = () => {
+                        img1.src = 'https://media.tenor.com/W_GgSsF7x9sAAAAi/amumu-sad.gif';
+                        console.log(`Falha ao carregar imagem de ${time1}`);
+                    };
+                };
+            };
+        };
+        teamLogos.appendChild(img1);
+    }
+    if (time2 && time1 !== time2) {
+        const img2 = document.createElement('img');
+        img2.src = getTeamLogoUrl(time2, 'square', 'webp');
+        img2.alt = `${time2} Logo`;
+        img2.onload = () => console.log(`Imagem ${time2} carregada: ${img2.src}, Dimensões: ${img2.naturalWidth}x${img2.naturalHeight}px`);
+        img2.onerror = () => {
+            img2.src = getTeamLogoUrl(time2, 'square', 'png');
+            img2.onerror = () => {
+                img2.src = getTeamLogoUrl(time2, 'profile', 'webp');
+                img2.onerror = () => {
+                    img2.src = getTeamLogoUrl(time2, 'profile', 'png');
+                    img2.onerror = () => {
+                        img2.src = 'https://media.tenor.com/_aAExG9FQDEAAAAj/league-of-legends-riot-games.gif';
+                        console.log(`Falha ao carregar imagem de ${time2}`);
+                    };
+                };
+            };
+        };
+        teamLogos.appendChild(img2);
+    }
+
     resultado.appendChild(h2);
     resultado.insertAdjacentHTML('beforeend', tableContent);
     
     console.log('Título renderizado:', h2.outerHTML);
 }
+
+function generateTeamGamesLink(teamName) {
+    const urlParams = new URLSearchParams();
+    urlParams.append('teamname', encodeURIComponent(teamName));
+
+    // Adicionar filtros da página (sem Linhas)
+    const year = document.getElementById('year-filter').value || '';
+    if (year) urlParams.append('year', year);
+
+    const liga = document.getElementById('liga').value || '';
+    if (liga) urlParams.append('liga', liga);
+
+    const side = document.getElementById('side').value || '';
+    if (side) urlParams.append('side', side);
+
+    const result = document.getElementById('result-filter').value || '';
+    if (result) urlParams.append('result', result);
+
+    
+
+    // Lógica de Confronto Direto: incluir apenas se o modo estiver ativo
+    if (isConfrontoDireto) {
+        const time1 = document.getElementById('time1').value || '';
+        const time2 = document.getElementById('time2').value || '';
+        if (time1 && time2 && time1 !== time2) {
+            urlParams.append('confrontoDireto', 'true');
+            urlParams.append('time1', encodeURIComponent(time1));
+            urlParams.append('time2', encodeURIComponent(time2));
+        }
+    }
+    const recentGames = document.getElementById('recent-games').value;
+    if (recentGames) urlParams.append('recentGames', recentGames);
+
+    const url = `team_games.html?${urlParams.toString()}`;
+    console.log('URL gerada para', teamName, ':', url); // Depuração
+    return url;
+}
+
+// [Outras funções permanecem iguais]

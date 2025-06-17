@@ -11,7 +11,7 @@ function loadCSV() {
         header: true,
         complete: function(results) {
             df = results.data;
-            // Filtrar linhas com dados vazios ou inválidos nas colunas team_* e adversa_*
+            // Filtrar linhas com dados vazios ou inválidos
             df = df.filter(row => {
                 const teamCols = ['team_top', 'team_jng', 'team_mid', 'team_bot', 'team_sup'];
                 const adversaCols = ['adversa_top', 'adversa_jng', 'adversa_mid', 'adversa_bot', 'adversa_sup'];
@@ -26,10 +26,15 @@ function loadCSV() {
             populateChampions();
             populatePatches();
             populateLeagues();
+            // Exibir melhores campeões do meta ao carregar a página
+            displayBestChampsMeta();
         },
         error: function(error) {
             console.error('Erro ao carregar CSV:', error);
-            document.getElementById('champ-stats-table').innerHTML = '<p>Erro ao carregar os dados!</p>';
+            alert('Erro ao carregar os dados! Verifique se o arquivo está disponível.');
+            // Exibir apenas melhores campeões do meta
+            document.getElementById('champ-stats-table').innerHTML = '';
+            displayBestChampsMeta();
         }
     });
 }
@@ -186,28 +191,155 @@ function gerarTabela(medias1, medias2, killStats1, killStats2, timeStats1, timeS
     return tableContent;
 }
 
-// Função para gerar título dinâmico
+// Função para gerar link para champ_games.html
+function generateChampGamesLink(champs, lanes, isTeam2 = false) {
+    const urlParams = new URLSearchParams();
+    
+    champs.forEach((champ, index) => {
+        const i = index + 1;
+        urlParams.append(`champ${isTeam2 ? 2 : 1}_${i}`, encodeURIComponent(champ));
+        if (lanes[index]) urlParams.append(`lane${isTeam2 ? 2 : 1}_${i}`, lanes[index]);
+    });
+
+    const patch = document.getElementById('patch-filter').value || '';
+    if (patch) urlParams.append('patch', patch);
+
+    const year = document.getElementById('year-filter').value || '';
+    if (year) urlParams.append('year', year);
+
+    const league = document.getElementById('league-filter').value || '';
+    if (league) urlParams.append('league', league);
+
+    const recentGames = document.getElementById('recent-games').value || '';
+    if (recentGames) urlParams.append('recentGames', recentGames);
+
+    if (isConfrontoDireto && !isTeam2) {
+        urlParams.append('confrontoDireto', 'true');
+    }
+
+    return `champ_games.html?${urlParams.toString()}`;
+}
+
+// Função para gerar título dinâmico com links
 function gerarTitulo(selectedChamps1, selectedChamps2, patchFilter, yearFilter, recentGames, leagueFilter, isConfrontoDireto = false) {
     const h2 = document.createElement('h2');
 
-    if (selectedChamps1.length > 0) {
-        const team1Text = selectedChamps1.length > 1 ? `(${selectedChamps1.map(c => c.name).join(' & ')})` : selectedChamps1[0].name;
-        h2.appendChild(document.createTextNode(team1Text));
-    }
+    if (selectedChamps1.length === 0 && selectedChamps2.length === 0) {
+        h2.appendChild(document.createTextNode('Estatísticas de Campeões'));
+    } else {
+        if (selectedChamps1.length > 0) {
+            const team1Text = selectedChamps1.length > 1 ? `(${selectedChamps1.map(c => c.name).join(' & ')})` : selectedChamps1[0].name;
+            const link1 = document.createElement('a');
+            link1.href = generateChampGamesLink(selectedChamps1.map(c => c.name), selectedChamps1.map(c => c.lane), false);
+            link1.target = '_blank';
+            link1.textContent = team1Text;
+            h2.appendChild(link1);
+        }
 
-    if (selectedChamps2.length > 0) {
-        const team2Text = selectedChamps2.length > 1 ? `(${selectedChamps2.map(c => c.name).join(' & ')})` : selectedChamps2[0].name;
-        h2.appendChild(document.createTextNode(isConfrontoDireto ? ' vs ' : ' + '));
-        h2.appendChild(document.createTextNode(team2Text));
+        if (selectedChamps2.length > 0) {
+            const team2Text = selectedChamps2.length > 1 ? `(${selectedChamps2.map(c => c.name).join(' & ')})` : selectedChamps2[0].name;
+            h2.appendChild(document.createTextNode(isConfrontoDireto ? ' vs ' : ' | '));
+            const link2 = document.createElement('a');
+            link2.href = generateChampGamesLink(selectedChamps2.map(c => c.name), selectedChamps2.map(c => c.lane), true);
+            link2.target = '_blank';
+            link2.textContent = team2Text;
+            h2.appendChild(link2);
+        }
     }
 
     if (patchFilter) h2.appendChild(document.createTextNode(` (Patch ${patchFilter})`));
     if (yearFilter) h2.appendChild(document.createTextNode(` (${yearFilter})`));
     if (leagueFilter && leagueFilter !== 'tier1') h2.appendChild(document.createTextNode(` (${leagueFilter})`));
-    if (leagueFilter === 'tier1') h2.appendChild(document.createTextNode(` (Principais / Tier 1)`));
+    if (leagueFilter === 'tier1') h2.appendChild(document.createTextNode(` (Campeonatos Tier 1)`));
     if (recentGames) h2.appendChild(document.createTextNode(` (Últimos ${recentGames} jogos)`));
 
     return h2;
+}
+
+// Função para obter os melhores campeões do meta
+function getBestChampsMeta() {
+    // Filtrar por Tier 1 e últimos 200 jogos
+    let metaData = df.filter(row => TIER1_LEAGUES.includes(row.league))
+                     .sort((a, b) => new Date(b.date) - new Date(a.date))
+                     .slice(0, 200);
+
+    const lanes = [
+        { col: 'team_top', name: 'Top' },
+        { col: 'team_jng', name: 'Jng' },
+        { col: 'team_mid', name: 'Mid' },
+        { col: 'team_bot', name: 'Bot' },
+        { col: 'team_sup', name: 'Sup' }
+    ];
+
+    const bestChamps = {};
+
+    lanes.forEach(lane => {
+        // Contar ocorrências e vitórias por campeão
+        const champStats = {};
+        metaData.forEach(row => {
+            const champ = row[lane.col];
+            if (champ && champ.trim() !== '') {
+                if (!champStats[champ]) {
+                    champStats[champ] = { occurrences: 0, wins: 0 };
+                }
+                champStats[champ].occurrences += 1;
+                if (parseInt(row.result) === 1) {
+                    champStats[champ].wins += 1;
+                }
+            }
+        });
+
+        // Calcular win rate, filtrar >= 15 jogos e ordenar
+        const champList = Object.keys(champStats).map(champ => ({
+            name: champ,
+            occurrences: champStats[champ].occurrences,
+            winRate: champStats[champ].occurrences > 0 ? (champStats[champ].wins / champStats[champ].occurrences * 100).toFixed(2) : 0
+        })).filter(champ => champ.occurrences >= 15);
+
+        // Ordenar por win rate (desc) e ocorrências (desc)
+        champList.sort((a, b) => {
+            if (b.winRate !== a.winRate) {
+                return b.winRate - a.winRate;
+            }
+            return b.occurrences - a.occurrences;
+        });
+
+        // Pegar os 4 primeiros
+        bestChamps[lane.name] = champList.slice(0, 4);
+    });
+
+    return bestChamps;
+}
+
+// Função para exibir os melhores campeões do meta
+function displayBestChampsMeta() {
+    const bestChamps = getBestChampsMeta();
+    const container = document.getElementById('best-champs-meta');
+    container.innerHTML = '<h3>Melhores Campeões do Meta Tier 1</h3>';
+
+    const laneOrder = ['Top', 'Jng', 'Mid', 'Bot', 'Sup'];
+    laneOrder.forEach(lane => {
+        const laneSection = document.createElement('div');
+        laneSection.className = 'lane-section';
+        
+        const champList = document.createElement('div');
+        champList.className = 'champ-list';
+
+        bestChamps[lane].forEach(champ => {
+            const champBlock = document.createElement('div');
+            champBlock.className = 'champ-block';
+            const cleanName = getCleanChampionName(champ.name);
+            champBlock.innerHTML = `
+                <div class="win-rate">${champ.winRate}%</div>
+                <img src="https://gol.gg/_img/champions_icon/${cleanName}.png" alt="${champ.name}">
+                <div class="occurrences">${champ.occurrences} jogos</div>
+            `;
+            champList.appendChild(champBlock);
+        });
+
+        laneSection.appendChild(champList);
+        container.appendChild(laneSection);
+    });
 }
 
 // Função para Stats Individual
@@ -220,8 +352,8 @@ function generateStats() {
     const yearFilter = document.getElementById('year-filter').value;
     const recentGames = document.getElementById('recent-games').value;
     const leagueFilter = document.getElementById('league-filter').value;
-    const killLine = parseFloat(document.getElementById('kill-line').value);
-    const timeLine = parseInt(document.getElementById('time-line').value);
+    const killLine = parseFloat(document.getElementById('kill-line').value) || 19.5;
+    const timeLine = parseInt(document.getElementById('time-line').value) || 26;
 
     const selectedChamps1 = champs1.filter(id => document.getElementById(id).value).map(id => ({
         name: document.getElementById(id).value,
@@ -233,7 +365,9 @@ function generateStats() {
     }));
 
     if (selectedChamps1.length === 0 && selectedChamps2.length === 0) {
-        document.getElementById('champ-stats-table').innerHTML = '<p>Selecione pelo menos um campeão!</p>';
+        alert('Selecione pelo menos um campeão!');
+        document.getElementById('champ-stats-table').innerHTML = '';
+        displayBestChampsMeta();
         return;
     }
 
@@ -295,11 +429,6 @@ function generateStats() {
         }
     }
 
-    // Logs de depuração (descomente para verificar)
-    // console.log('filteredData1 length:', filteredData1.length, 'filteredData2 length:', filteredData2.length);
-    // console.log('filteredData1 totalKills:', filteredData1.map(row => row.totalKills));
-    // console.log('filteredData2 totalKills:', filteredData2.map(row => row.totalKills));
-
     const medias1 = selectedChamps1.length > 0 ? calcularMedias(filteredData1, false) : { 'Jogos': 0, 'Vitórias': 0, 'Vitórias (%)': 0 };
     const medias2 = selectedChamps2.length > 0 ? calcularMedias(filteredData2, true) : { 'Jogos': 0, 'Vitórias': 0, 'Vitórias (%)': 0 };
     const killStats1 = selectedChamps1.length > 0 ? calcularKillStats(filteredData1, killLine) : { percentBelow: 0, percentAbove: 0 };
@@ -314,6 +443,9 @@ function generateStats() {
     const h2 = gerarTitulo(selectedChamps1, selectedChamps2, patchFilter, yearFilter, recentGames, leagueFilter, false);
     resultado.appendChild(h2);
     resultado.insertAdjacentHTML('beforeend', tableContent);
+
+    // Exibir melhores campeões do meta
+    displayBestChampsMeta();
 }
 
 // Função para Confronto Direto
@@ -326,8 +458,8 @@ function confrontoDireto() {
     const yearFilter = document.getElementById('year-filter').value;
     const recentGames = document.getElementById('recent-games').value;
     const leagueFilter = document.getElementById('league-filter').value;
-    const killLine = parseFloat(document.getElementById('kill-line').value);
-    const timeLine = parseInt(document.getElementById('time-line').value);
+    const killLine = parseFloat(document.getElementById('kill-line').value) || 19.5;
+    const timeLine = parseInt(document.getElementById('time-line').value) || 26;
 
     const selectedChamps1 = champs1.filter(id => document.getElementById(id).value).map(id => ({
         name: document.getElementById(id).value,
@@ -339,7 +471,9 @@ function confrontoDireto() {
     }));
 
     if (selectedChamps1.length === 0 || selectedChamps2.length === 0) {
-        document.getElementById('champ-stats-table').innerHTML = '<p>Selecione pelo menos um campeão de cada time para o Confronto Direto!</p>';
+        alert('Selecione pelo menos um campeão de cada time para o Confronto Direto!');
+        document.getElementById('champ-stats-table').innerHTML = '';
+        displayBestChampsMeta();
         return;
     }
 
@@ -386,7 +520,6 @@ function confrontoDireto() {
         filteredData = filteredData.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
     }
 
-    // Calcular estatísticas, mesmo que filteredData esteja vazio
     const medias1 = filteredData.length > 0 ? calcularMedias(filteredData, false) : { 'Jogos': 0, 'Vitórias': 0, 'Vitórias (%)': 0 };
     const medias2 = filteredData.length > 0 ? {
         'Jogos': filteredData.length,
@@ -394,9 +527,9 @@ function confrontoDireto() {
         'Vitórias (%)': filteredData.length > 0 ? ((filteredData.length - medias1.Vitórias) / filteredData.length * 100).toFixed(2) : 0
     } : { 'Jogos': 0, 'Vitórias': 0, 'Vitórias (%)': 0 };
     const killStats1 = filteredData.length > 0 ? calcularKillStats(filteredData, killLine) : { percentBelow: 0, percentAbove: 0 };
-    const killStats2 = killStats1; // Mesmos dados para under/over kills
+    const killStats2 = killStats1;
     const timeStats1 = filteredData.length > 0 ? calcularTimeStats(filteredData, timeLine) : { percentBelow: 0, percentAbove: 0 };
-    const timeStats2 = timeStats1; // Mesmos dados para under/over tempo
+    const timeStats2 = timeStats1;
 
     const tableContent = gerarTabela(medias1, medias2, killStats1, killStats2, timeStats1, timeStats2, selectedChamps1, selectedChamps2, killLine, timeLine);
 
@@ -405,6 +538,9 @@ function confrontoDireto() {
     const h2 = gerarTitulo(selectedChamps1, selectedChamps2, patchFilter, yearFilter, recentGames, leagueFilter, true);
     resultado.appendChild(h2);
     resultado.insertAdjacentHTML('beforeend', tableContent);
+
+    // Exibir melhores campeões do meta
+    displayBestChampsMeta();
 }
 
 // Iniciar o carregamento do CSV quando a página carrega

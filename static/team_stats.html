@@ -8,17 +8,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
 <body>
-    <!-- Imagem clicável com link para a página principal -->
     <a href="../index.html">
         <img src="LogoBanner.png" alt="Logo Banner" class="banner-image">
     </a>
 
     <div class="filter-container">
-        <div class="info-note">* Apoie o desenvolvimento de um site robusto com mais funcionalidades.</div>
+        <div class="info-note">* Para visualizar times antigos, altere o Ano.</div>
         <div class="time-row">
             <div class="filter-group">
                 <label for="time1">Time 1:</label>
-                <input id="time1" list="times-list" placeholder="Digite o nome do time">
+                <input id="time1" list="times-list" placeholder="Selecione um time">
             </div>
             <div class="filter-group">
                 <label for="kill-line">Linha Kills:</label>
@@ -47,11 +46,11 @@
         <div class="time-row">
             <div class="filter-group">
                 <label for="time2">Time 2:</label>
-                <input id="time2" list="times-list" placeholder="Digite o nome do time">
+                <input id="time2" list="times-list" placeholder="Selecione um time">
             </div>
             <div class="filter-group">
                 <label for="time-line">Linha Tempo:</label>
-                <select id="time-line" onchange="carregarTimes()">                   
+                <select id="time-line" onchange="carregarTimes()">
                     <option value="26">26</option>
                     <option value="27">27</option>
                     <option value="28">28</option>
@@ -138,39 +137,43 @@
                 </select>
             </div>
         </div>
+        <div class="time-row">
+            <div class="filter-group">
+                <label for="year-filter">Ano:</label>
+                <select id="year-filter" onchange="carregarTimes()">
+                    <option value="2025" selected>2025</option>
+                    <option value="">Todos os Anos</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
+                    <option value="2019">2019</option>
+                    <option value="2018">2018</option>
+                    <option value="2017">2017</option>
+                    <option value="2016">2016</option>
+                    <option value="2015">2015</option>
+                    <option value="2014">2014</option>
+                </select>
+            </div>
+            <div class="filter-group"></div>
+        </div>
     </div>
     <datalist id="times-list"></datalist>
+    <div id="team-logos" class="team-logos"></div> <!-- Novo contêiner para logos -->
     <div class="button-container">
         <button onclick="comparar()">Stats Individual</button>
         <button onclick="confrontoDireto()">Confronto Direto</button>
-        <div class="filter-group">
-            <label for="year-filter">Ano:</label>
-            <select id="year-filter" onchange="carregarTimes()">
-                <option value="2025" selected>2025</option>
-                <option value="">Todos os Anos</option>
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-                <option value="2022">2022</option>
-                <option value="2021">2021</option>
-                <option value="2020">2020</option>
-                <option value="2019">2019</option>
-                <option value="2018">2018</option>
-                <option value="2017">2017</option>
-                <option value="2016">2016</option>
-                <option value="2015">2015</option>
-                <option value="2014">2014</option>
-            </select>
-        </div>
     </div>
     <div id="resultado"></div>
     <script src="team_stats.js"></script>
 
-    <!-- Imagem fora do body, ao lado direito da LogoBanner.png -->
+    
+</body>
     <div class="qr-container">
         <img src="QRKucoinTRON.png" alt="QR Code KuCoin TRON" class="qr-image">
     </div>
 
-    <!-- Nova imagem fora do body, no extremo lado esquerdo -->
     <div class="qr-left-container">
         <img src="QRPix.png" alt="QR Code Pix" class="qr-left-image">
     </div>

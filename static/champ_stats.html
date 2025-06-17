@@ -16,11 +16,11 @@
     <datalist id="leagues-list"></datalist>
 
     <div class="filter-container">
-        <!-- Row 1: C1 -->
+        <div class="info-note">* A pesquisa será conjunta com campeãoes de mesma coluna. Confronto direto apenas em colunas opostas.</div>
         <div class="champ-row">
             <div class="champ-pair">
                 <div class="filter-group">
-                    <input id="champ1_1" list="champions-list" placeholder="Champion" oninput="updateImage('champ1_1')">
+                    <input id="champ1_1" list="champions-list" placeholder="Selecione um Campeão" oninput="updateImage('champ1_1')">
                 </div>
                 <div class="filter-group lane-input">
                     <select id="lane1_1">
@@ -36,7 +36,7 @@
             </div>
             <div class="champ-pair">
                 <div class="filter-group">
-                    <input id="champ2_1" list="champions-list" placeholder="Champion" oninput="updateImage('champ2_1')">
+                    <input id="champ2_1" list="champions-list" placeholder="Selecione um Campeão" oninput="updateImage('champ2_1')">
                 </div>
                 <div class="filter-group lane-input">
                     <select id="lane2_1">
@@ -56,7 +56,7 @@
         <div class="champ-row">
             <div class="champ-pair">
                 <div class="filter-group">
-                    <input id="champ1_2" list="champions-list" placeholder="Champion" oninput="updateImage('champ1_2')">
+                    <input id="champ1_2" list="champions-list" placeholder="Selecione um Campeão" oninput="updateImage('champ1_2')">
                 </div>
                 <div class="filter-group lane-input">
                     <select id="lane1_2">
@@ -72,7 +72,7 @@
             </div>
             <div class="champ-pair">
                 <div class="filter-group">
-                    <input id="champ2_2" list="champions-list" placeholder="Champion" oninput="updateImage('champ2_2')">
+                    <input id="champ2_2" list="champions-list" placeholder="Selecione um Campeão" oninput="updateImage('champ2_2')">
                 </div>
                 <div class="filter-group lane-input">
                     <select id="lane2_2">
@@ -92,7 +92,7 @@
         <div class="champ-row">
             <div class="champ-pair">
                 <div class="filter-group">
-                    <input id="champ1_3" list="champions-list" placeholder="Champion" oninput="updateImage('champ1_3')">
+                    <input id="champ1_3" list="champions-list" placeholder="Selecione um Campeão" oninput="updateImage('champ1_3')">
                 </div>
                 <div class="filter-group lane-input">
                     <select id="lane1_3">
@@ -108,7 +108,7 @@
             </div>
             <div class="champ-pair">
                 <div class="filter-group">
-                    <input id="champ2_3" list="champions-list" placeholder="Champion" oninput="updateImage('champ2_3')">
+                    <input id="champ2_3" list="champions-list" placeholder="Selecione um Campeão" oninput="updateImage('champ2_3')">
                 </div>
                 <div class="filter-group lane-input">
                     <select id="lane2_3">
@@ -169,8 +169,8 @@
             <div class="filter-group">
                 <label for="league-filter">Campeonato:</label>
                 <select id="league-filter">
+                    <option value="tier1">LCK, LPL, LEC, LTA, LCP, MSI, EWC, WLDS</option>
                     <option value="">Todos os campeonatos</option>
-                    <option value="tier1">Principais / Tier 1</option>
                 </select>
             </div>
         </div>
@@ -197,6 +197,7 @@
                     <option value="33.5">33.5</option>
                     <option value="34.5">34.5</option>
                     <option value="35.5">35.5</option>
+                    <option value="36.5">36.5</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -219,11 +220,19 @@
     </div>
 
     <div class="button-container">
-        <button onclick="generateStats()">Stats Individual</button>
+        <button onclick="generateStats()">Stats</button>
         <button onclick="confrontoDireto()">Confronto Direto</button>
     </div>
     <div id="champ-stats-table"></div>
+    <div id="best-champs-meta"></div>
 
     <script src="champ_stats.js"></script>
 </body>
+<div class="qr-container">
+        <img src="QRKucoinTRON.png" alt="QR Code KuCoin TRON" class="qr-image">
+    </div>
+
+    <div class="qr-left-container">
+        <img src="QRPix.png" alt="QR Code Pix" class="qr-left-image">
+    </div>
 </html>
