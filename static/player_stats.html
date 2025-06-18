@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -56,7 +17,7 @@
         <div class="champ-row">
             <div class="champ-pair">
                 <div class="filter-group">
-                    <input type="text" id="player1_1" list="players-list" placeholder="Jogador Time 1" oninput="updateImage('player1_1')">
+                    <input type="text" id="player1_1" list="players-list" placeholder="Jogador Time 1" oninput="updateImageAndLane('player1_1')">
                 </div>
                 <div class="filter-group lane-input">
                     <select id="lane1_1">
@@ -72,7 +33,7 @@
             </div>
             <div class="champ-pair">
                 <div class="filter-group">
-                    <input type="text" id="player2_1" list="players-list" placeholder="Jogador Time 2" oninput="updateImage('player2_1')">
+                    <input type="text" id="player2_1" list="players-list" placeholder="Jogador Time 2" oninput="updateImageAndLane('player2_1')">
                 </div>
                 <div class="filter-group lane-input">
                     <select id="lane2_1">
@@ -88,48 +49,67 @@
             </div>
         </div>
 
-        <div class="filter-group">
-            <label for="patch-filter">Patch:</label>
-            <select id="patch-filter">
-                <option value="">Todos os Patches</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="year-filter">Ano:</label>
-            <select id="year-filter">
-                <option value="">Todos os Anos</option>
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-                <option value="2022">2022</option>
-                <option value="2021">2021</option>
-                <option value="2020">2020</option>
-                <option value="2019">2019</option>
-                <option value="2018">2018</option>
-                <option value="2017">2017</option>
-                <option value="2016">2016</option>
-                <option value="2015">2015</option>
-                <option value="2014">2014</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="recent-games">Jogos Recentes:</label>
-            <select id="recent-games">
-                <option value="">Todos os Jogos</option>
-                <option value="10">Últimos 10 jogos</option>
-                <option value="20">Últimos 20 jogos</option>
-                <option value="30">Últimos 30 jogos</option>
-                <option value="40">Últimos 40 jogos</option>
-                <option value="50">Últimos 50 jogos</option>
-                <option value="100">Últimos 100 jogos</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="league-filter">Campeonato:</label>
-            <select id="league-filter">
-                <option value="tier1">LCK, LPL, LEC, LTA, LCP, MSI, EWC, WLDS</option>
-                <option value="">Todos os campeonatos</option>
-            </select>
+        <div class="filter-row">
+            <div class="filter-group-left">
+                <div class="filter-group">
+                    <label for="league-filter">Campeonato:</label>
+                    <select id="league-filter">
+                        <option value="">Todos os Campeonatos</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="year-filter">Ano:</label>
+                    <select id="year-filter">
+                        <option value="">Todos os Anos</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                        <option value="2017">2017</option>
+                        <option value="2016">2016</option>
+                        <option value="2015">2015</option>
+                        <option value="2014">2014</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-group-right">
+                <div class="filter-group">
+                    <label for="kill-line">Linha Kills:</label>
+                    <select id="kill-line">
+                        <option value="0.5">0.5</option>
+                        <option value="1.5">1.5</option>
+                        <option value="2.5">2.5</option>
+                        <option value="3.5">3.5</option>
+                        <option value="4.5" selected>4.5</option>
+                        <option value="5.5">5.5</option>
+                        <option value="6.5">6.5</option>
+                        <option value="7.5">7.5</option>
+                        <option value="8.5">8.5</option>
+                        <option value="9.5">9.5</option>
+                        <option value="10.5">10.5</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="death-line">Linha Mortes:</label>
+                    <select id="death-line">
+                        <option value="0.5">0.5</option>
+                        <option value="1.5">1.5</option>
+                        <option value="2.5">2.5</option>
+                        <option value="3.5">3.5</option>
+                        <option value="4.5" selected>4.5</option>
+                        <option value="5.5">5.5</option>
+                        <option value="6.5">6.5</option>
+                        <option value="7.5">7.5</option>
+                        <option value="8.5">8.5</option>
+                        <option value="9.5">9.5</option>
+                        <option value="10.5">10.5</option>
+                    </select>
+                </div>
+            </div>
         </div>
     </div>
 
