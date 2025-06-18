@@ -1,5 +1,6 @@
 // Variável global para armazenar os dados do CSV
 let df = null;
+let isConfrontoDireto = false; // Flag para controlar o modo Confronto Direto
 
 // Lista de campeonatos Tier 1
 const TIER1_LEAGUES = ['LCK', 'LPL', 'LEC', 'LCS', 'LTA', 'LTA N', 'WLDS', 'MSI', 'EWC', 'LCP'];
@@ -41,7 +42,14 @@ function loadCSV() {
 
 // Função para preencher o datalist com os nomes dos campeões
 function populateChampions() {
-    const champions = [...new Set(df.map(row => row.champion).filter(name => name && name.trim() !== ''))].sort();
+    const championCols = [
+        'team_top', 'team_jng', 'team_mid', 'team_bot', 'team_sup',
+        'adversa_top', 'adversa_jng', 'adversa_mid', 'adversa_bot', 'adversa_sup'
+    ];
+    const champions = [...new Set(
+        df.flatMap(row => championCols.map(col => row[col]))
+          .filter(name => name && name.trim() !== '')
+    )].sort();
     const datalist = document.getElementById('champions-list');
     datalist.innerHTML = '';
     champions.forEach(champion => {
@@ -97,12 +105,12 @@ function updateImage(champId) {
     if (champInput.value) {
         const cleanName = getCleanChampionName(champInput.value);
         const imgUrl = `https://gol.gg/_img/champions_icon/${cleanName}.png`;
-        imageDiv.innerHTML = `<img src="${imgUrl}" alt="${champInput.value}" style="max-width: 100px; max-height: 100px;">`;
+        const placeholderUrl = 'https://media.tenor.com/_aAExG9FQDEAAAAj/league-of-legends-riot-games.gif';
+        imageDiv.innerHTML = `<img src="${imgUrl}" alt="${champInput.value}" style="max-width: 100px; max-height: 100px;" onerror="this.src='${placeholderUrl}'; this.onerror=null;">`;
     } else {
         imageDiv.innerHTML = '';
     }
 }
-
 // Função para calcular médias (jogos, vitórias, vitórias %)
 function calcularMedias(dados, isTeam2 = false) {
     const jogos = dados.length;
@@ -192,13 +200,23 @@ function gerarTabela(medias1, medias2, killStats1, killStats2, timeStats1, timeS
 }
 
 // Função para gerar link para champ_games.html
-function generateChampGamesLink(champs, lanes, isTeam2 = false) {
+function generateChampGamesLink(champs1, lanes1, champs2 = [], lanes2 = []) {
     const urlParams = new URLSearchParams();
     
-    champs.forEach((champ, index) => {
-        const i = index + 1;
-        urlParams.append(`champ${isTeam2 ? 2 : 1}_${i}`, encodeURIComponent(champ));
-        if (lanes[index]) urlParams.append(`lane${isTeam2 ? 2 : 1}_${i}`, lanes[index]);
+    champs1.forEach((champ, index) => {
+        if (champ) {
+            const i = index + 1;
+            urlParams.append(`champ1_${i}`, encodeURIComponent(champ));
+            if (lanes1[index]) urlParams.append(`lane1_${i}`, lanes1[index]);
+        }
+    });
+
+    champs2.forEach((champ, index) => {
+        if (champ) {
+            const i = index + 1;
+            urlParams.append(`champ2_${i}`, encodeURIComponent(champ));
+            if (lanes2[index]) urlParams.append(`lane2_${i}`, lanes2[index]);
+        }
     });
 
     const patch = document.getElementById('patch-filter').value || '';
@@ -213,7 +231,7 @@ function generateChampGamesLink(champs, lanes, isTeam2 = false) {
     const recentGames = document.getElementById('recent-games').value || '';
     if (recentGames) urlParams.append('recentGames', recentGames);
 
-    if (isConfrontoDireto && !isTeam2) {
+    if (isConfrontoDireto && champs2.length > 0) {
         urlParams.append('confrontoDireto', 'true');
     }
 
@@ -221,37 +239,62 @@ function generateChampGamesLink(champs, lanes, isTeam2 = false) {
 }
 
 // Função para gerar título dinâmico com links
-function gerarTitulo(selectedChamps1, selectedChamps2, patchFilter, yearFilter, recentGames, leagueFilter, isConfrontoDireto = false) {
+function gerarTitulo(selectedChamps1, selectedChamps2, patchFilter, yearFilter, recentGames, leagueFilter, isConfrontoDireto) {
     const h2 = document.createElement('h2');
 
     if (selectedChamps1.length === 0 && selectedChamps2.length === 0) {
         h2.appendChild(document.createTextNode('Estatísticas de Campeões'));
     } else {
-        if (selectedChamps1.length > 0) {
-            const team1Text = selectedChamps1.length > 1 ? `(${selectedChamps1.map(c => c.name).join(' & ')})` : selectedChamps1[0].name;
-            const link1 = document.createElement('a');
-            link1.href = generateChampGamesLink(selectedChamps1.map(c => c.name), selectedChamps1.map(c => c.lane), false);
-            link1.target = '_blank';
-            link1.textContent = team1Text;
-            h2.appendChild(link1);
-        }
+        if (isConfrontoDireto && selectedChamps1.length > 0 && selectedChamps2.length > 0) {
+            // Gerar um único link para o confronto direto
+            const champs1Text = selectedChamps1.map(c => c.name).join(' & ');
+            const champs2Text = selectedChamps2.map(c => c.name).join(' & ');
+            const link = document.createElement('a');
+            link.href = generateChampGamesLink(
+                selectedChamps1.map(c => c.name),
+                selectedChamps1.map(c => c.lane),
+                selectedChamps2.map(c => c.name),
+                selectedChamps2.map(c => c.lane)
+            );
+            link.target = '_blank';
+            link.textContent = `Partidas de ${champs1Text} vs ${champs2Text}`;
+            link.className = 'confronto-link';
+            h2.appendChild(link);
+        } else {
+            // Links individuais para cada time
+            if (selectedChamps1.length > 0) {
+                const team1Text = selectedChamps1.length > 1 ? `(${selectedChamps1.map(c => c.name).join(' & ')})` : selectedChamps1[0].name;
+                const link1 = document.createElement('a');
+                link1.href = generateChampGamesLink(selectedChamps1.map(c => c.name), selectedChamps1.map(c => c.lane));
+                link1.target = '_blank';
+                link1.textContent = team1Text;
+                link1.className = 'champ-link';
+                h2.appendChild(link1);
+            }
 
-        if (selectedChamps2.length > 0) {
-            const team2Text = selectedChamps2.length > 1 ? `(${selectedChamps2.map(c => c.name).join(' & ')})` : selectedChamps2[0].name;
-            h2.appendChild(document.createTextNode(isConfrontoDireto ? ' vs ' : ' | '));
-            const link2 = document.createElement('a');
-            link2.href = generateChampGamesLink(selectedChamps2.map(c => c.name), selectedChamps2.map(c => c.lane), true);
-            link2.target = '_blank';
-            link2.textContent = team2Text;
-            h2.appendChild(link2);
+            if (selectedChamps2.length > 0) {
+                const team2Text = selectedChamps2.length > 1 ? `(${selectedChamps2.map(c => c.name).join(' & ')})` : selectedChamps2[0].name;
+                h2.appendChild(document.createTextNode(selectedChamps1.length > 0 ? ' | ' : ''));
+                const link2 = document.createElement('a');
+                link2.href = generateChampGamesLink([], [], selectedChamps2.map(c => c.name), selectedChamps2.map(c => c.lane));
+                link2.target = '_blank';
+                link2.textContent = team2Text;
+                link2.className = 'champ-link';
+                h2.appendChild(link2);
+            }
         }
     }
 
-    if (patchFilter) h2.appendChild(document.createTextNode(` (Patch ${patchFilter})`));
-    if (yearFilter) h2.appendChild(document.createTextNode(` (${yearFilter})`));
-    if (leagueFilter && leagueFilter !== 'tier1') h2.appendChild(document.createTextNode(` (${leagueFilter})`));
-    if (leagueFilter === 'tier1') h2.appendChild(document.createTextNode(` (Campeonatos Tier 1)`));
-    if (recentGames) h2.appendChild(document.createTextNode(` (Últimos ${recentGames} jogos)`));
+    // Adicionar filtros ao título
+    let filters = [];
+    if (yearFilter) filters.push(`${yearFilter}`);
+    if (patchFilter) filters.push(`Patch ${patchFilter}`);
+    if (leagueFilter && leagueFilter !== 'tier1') filters.push(leagueFilter);
+    if (leagueFilter === 'tier1') filters.push('Campeonatos Tier 1');
+    if (recentGames) filters.push(`Últimos ${recentGames} jogos`);
+    if (filters.length > 0) {
+        h2.appendChild(document.createTextNode(` (${filters.join(', ')})`));
+    }
 
     return h2;
 }
@@ -344,6 +387,7 @@ function displayBestChampsMeta() {
 
 // Função para Stats Individual
 function generateStats() {
+    isConfrontoDireto = false; // Desativar modo Confronto Direto
     const champs1 = ['champ1_1', 'champ1_2', 'champ1_3'];
     const champs2 = ['champ2_1', 'champ2_2', 'champ2_3'];
     const lanes1 = ['lane1_1', 'lane1_2', 'lane1_3'];
@@ -371,7 +415,7 @@ function generateStats() {
         return;
     }
 
-    // Aplicar filtros
+    // Aplicar para Stats Individual
     let filteredData = df;
 
     // Filtro por ano
@@ -389,7 +433,7 @@ function generateStats() {
         filteredData = filteredData.filter(row => row.patch === patchFilter);
     }
 
-    // Filtro por liga
+    // Filtro para liga
     if (leagueFilter !== '') {
         if (leagueFilter === 'tier1') {
             filteredData = filteredData.filter(row => TIER1_LEAGUES.includes(row.league));
@@ -398,8 +442,8 @@ function generateStats() {
         }
     }
 
-    let filteredData1 = [];
-    let filteredData2 = [];
+    let filteredData1 = filteredData;
+    let filteredData2 = filteredData;
 
     if (selectedChamps1.length > 0) {
         filteredData1 = filteredData.filter(row => {
@@ -419,7 +463,7 @@ function generateStats() {
         });
     }
 
-    // Filtro por jogos recentes
+    // Filtro para jogos recentes
     if (recentGames !== '') {
         if (filteredData1.length > 0) {
             filteredData1 = filteredData1.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
@@ -440,7 +484,7 @@ function generateStats() {
 
     const resultado = document.getElementById('champ-stats-table');
     resultado.innerHTML = '';
-    const h2 = gerarTitulo(selectedChamps1, selectedChamps2, patchFilter, yearFilter, recentGames, leagueFilter, false);
+    const h2 = gerarTitulo(selectedChamps1, selectedChamps2, patchFilter, yearFilter, recentGames, leagueFilter, isConfrontoDireto);
     resultado.appendChild(h2);
     resultado.insertAdjacentHTML('beforeend', tableContent);
 
@@ -450,6 +494,7 @@ function generateStats() {
 
 // Função para Confronto Direto
 function confrontoDireto() {
+    isConfrontoDireto = true; // Ativar modo Confronto Direto
     const champs1 = ['champ1_1', 'champ1_2', 'champ1_3'];
     const champs2 = ['champ2_1', 'champ2_2', 'champ2_3'];
     const lanes1 = ['lane1_1', 'lane1_2', 'lane1_3'];
@@ -490,12 +535,12 @@ function confrontoDireto() {
         });
     }
 
-    // Filtro por patch
+    // Filtro para patch
     if (patchFilter !== '') {
         filteredData = filteredData.filter(row => row.patch === patchFilter);
     }
 
-    // Filtro por liga
+    // Filtro para liga
     if (leagueFilter !== '') {
         if (leagueFilter === 'tier1') {
             filteredData = filteredData.filter(row => TIER1_LEAGUES.includes(row.league));
@@ -509,7 +554,8 @@ function confrontoDireto() {
         return selectedChamps1.every(champ => {
             const laneCol = champ.lane ? `team_${champ.lane}` : ['team_top', 'team_jng', 'team_mid', 'team_bot', 'team_sup'].find(col => row[col] === champ.name);
             return laneCol && row[laneCol] === champ.name;
-        }) && selectedChamps2.every(champ => {
+        }) && 
+        selectedChamps2.every(champ => {
             const laneCol = champ.lane ? `adversa_${champ.lane}` : ['adversa_top', 'adversa_jng', 'adversa_mid', 'adversa_bot', 'adversa_sup'].find(col => row[col] === champ.name);
             return laneCol && row[laneCol] === champ.name;
         });

@@ -44,7 +44,7 @@ function loadCSV() {
 function exportToCSV(filteredData, title) {
     // Definir os cabeçalhos do CSV (em português, como na tabela)
     const headers = [
-        'Data', 'Liga', 'Lado', 'Vitória', 'Adversário', 'Duração (min)',
+        'Data', 'Liga', 'Lado', 'Vitória', 'Adversário', 'Tempo(min)',
         'Kills', 'Deaths', 'Primeira Torre', 'Primeiro Dragão', 'Primeiro Sangue',
         'Total Dragões', 'Total Barons', 'Total Torres', 'Total Inibidores'
     ];
@@ -177,7 +177,7 @@ function displayTeamData() {
                     <th>Lado</th>
                     <th>Vitória</th>
                     <th>Adversário</th>
-                    <th>Duração (min)</th>
+                    <th>Tempo(min)</th>
                     <th>Kills</th>
                     <th>Deaths</th>
                     <th>Primeira Torre</th>

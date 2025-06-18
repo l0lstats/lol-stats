@@ -5,6 +5,14 @@ let dfResult = null;
 let allTeams = [];
 let isConfrontoDireto = false; // Flag para controlar o modo
 
+function mostrarLoader() {
+    document.getElementById('loader').style.display = 'flex';
+}
+
+function esconderLoader() {
+    document.getElementById('loader').style.display = 'none';
+}
+
 // Função para capitalizar cada palavra
 function capitalizeWords(str) {
     return str.replace(/\b\w/g, char => char.toUpperCase());
@@ -89,6 +97,7 @@ Papa.parse('BaseDadosTeam.csv', {
     download: true,
     header: true,
     complete: function(results) {
+        mostrarLoader();
         df = results.data;
         if (df.length === 0) {
             alert('Nenhum dado válido encontrado!');
@@ -109,9 +118,11 @@ Papa.parse('BaseDadosTeam.csv', {
         document.getElementById('liga').onchange = carregarTimes;
         document.getElementById('side').onchange = carregarTimes;
         document.getElementById('result-filter').onchange = carregarTimes;
+        esconderLoader();
     },
     error: function(error) {
         console.error('Erro ao carregar CSV:', error);
+        esconderLoader();
     }
 });
 

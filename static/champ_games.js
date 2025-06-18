@@ -1,275 +1,338 @@
-// Variável global para armazenar os dados do CSV
-let df;
+let df = null;
 
-// Função para obter parâmetros da URL
-function getUrlParams() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const champs1 = [];
-    const lanes1 = [];
-    const champs2 = [];
-    const lanes2 = [];
-    
-    for (let i = 1; i <= 3; i++) {
-        const champ1 = urlParams.get(`champ1_${i}`);
-        const lane1 = urlParams.get(`lane1_${i}`);
-        if (champ1) {
-            champs1.push(decodeURIComponent(champ1));
-            lanes1.push(lane1 || '');
-        }
-        const champ2 = urlParams.get(`champ2_${i}`);
-        const lane2 = urlParams.get(`lane2_${i}`);
-        if (champ2) {
-            champs2.push(decodeURIComponent(champ2));
-            lanes2.push(lane2 || '');
-        }
-    }
-
-    return {
-        champs1,
-        lanes1,
-        champs2,
-        lanes2,
-        patch: urlParams.get('patch') || '',
-        year: urlParams.get('year') || '',
-        league: urlParams.get('league') || '',
-        recentGames: urlParams.get('recentGames') || '',
-        confrontoDireto: urlParams.get('confrontoDireto') === 'true'
-    };
-}
-
-// Função para carregar o CSV
 function loadCSV() {
     Papa.parse('BaseDadosChamp.csv', {
         download: true,
         header: true,
         complete: function(results) {
             df = results.data;
-            console.log('CSV carregado, primeiros 5 registros:', df.slice(0, 5));
-            displayChampData();
+            // Filtrar linhas com dados válidos
+            df = df.filter(row => {
+                const teamCols = ['team_top', 'team_jng', 'team_mid', 'team_bot', 'team_sup'];
+                const adversaCols = ['adversa_top', 'adversa_jng', 'adversa_mid', 'adversa_bot', 'adversa_sup'];
+                const allCols = [...teamCols, ...adversaCols];
+                return allCols.every(col => row[col] && row[col].trim() !== '');
+            });
+            console.log('CSV carregado, primeiros 5:', df.slice(0, 5));
+            filterGames();
         },
         error: function(error) {
             console.error('Erro ao carregar CSV:', error);
-            document.getElementById('champ-info').innerHTML = '<p>Erro ao carregar os dados! Verifique se o arquivo está disponível.</p>';
+            alert('Erro ao carregar os dados! Verifique se o arquivo está disponível.');
+            document.getElementById('games-table').innerHTML = '';
         }
     });
 }
 
-// Função para exportar a tabela para CSV
-function exportToCSV(filteredData, title) {
-    // Definir os cabeçalhos do CSV
-    const headers = [
-        'Data', 'Liga', 'Time', 'Resultado', 'Adversário',
-        'Top', 'Jungle', 'Mid', 'Bot', 'Suporte',
-        'adversa_Top', 'adversa_Jng', 'adversa_Mid', 'adversa_Bot', 'adversa_Sup'
-    ];
+function getQueryParams() {
+    const params = new URLSearchParams(window.location.search);
+    const champs1 = [];
+    const lanes1 = [];
+    const champs2 = [];
+    const lanes2 = [];
+    let i = 1;
 
-    // Mapear os dados filtrados para corresponder aos cabeçalhos
-    const csvData = filteredData.map(row => [
-        row.date || '-',
-        row.league || '-',
-        row.teamname || '-',
-        row.result || '-',
-        row.adversa_team || '-',
-        row.team_top || '-',
-        row.team_jng || '-',
-        row.team_mid || '-',
-        row.team_bot || '-',
-        row.team_sup || '-',
-        row.adversa_top || '-',
-        row.adversa_jng || '-',
-        row.adversa_mid || '-',
-        row.adversa_bot || '-',
-        row.adversa_sup || '-'
-    ]);
+    // Extrair champs1 e lanes1
+    while (params.has(`champ1_${i}`)) {
+        champs1.push(decodeURIComponent(params.get(`champ1_${i}`)));
+        lanes1.push(params.get(`lane1_${i}`) || '');
+        i++;
+    }
 
-    // Converter para CSV usando PapaParse
-    const csv = Papa.unparse({
-        fields: headers,
-        data: csvData
-    });
+    i = 1;
+    while (params.has(`champ2_${i}`)) {
+        champs2.push(decodeURIComponent(params.get(`champ2_${i}`)));
+        lanes2.push(params.get(`lane2_${i}`) || '');
+        i++;
+    }
 
-    // Criar um blob com o conteúdo CSV
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-
-    // Criar um link temporário para download
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${title.replace(/[^a-zA-Z0-9]/g, '_')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    return {
+        champs1,
+        champs2,
+        lanes1,
+        lanes2,
+        patch: params.get('patch') || '',
+        year: params.get('year') || '',
+        leagueFilter: params.get('league') || '',
+        recentGames: params.get('recentGames') || '',
+        confrontoDireto: params.get('confrontoDireto') === 'true'
+    };
 }
 
-// Função para exibir os dados dos campeões
-function displayChampData() {
-    const params = getUrlParams();
-    const champs1 = params.champs1;
-    const lanes1 = params.lanes1;
-    const champs2 = params.champs2;
-    const lanes2 = params.lanes2;
-
-    if (champs1.length === 0 && champs2.length === 0) {
-        document.getElementById('champ-info').innerHTML = '<p>Nenhum campeão selecionado!</p>';
+function filterGames() {
+    if (!df) {
+        console.error('Dados não carregados!');
         return;
     }
+
+    const { champs1, champs2, lanes1, lanes2, patch, year, leagueFilter, recentGames, confrontoDireto } = getQueryParams();
 
     let filteredData = df;
 
-    // Aplicar filtros gerais
-    if (params.year) {
+    // Aplicar filtros
+    if (year !== '') {
         filteredData = filteredData.filter(row => {
             if (!row.date) return false;
-            const year = new Date(row.date).getFullYear().toString();
-            return year === params.year;
+            const date = new Date(row.date);
+            const rowYear = date.getFullYear();
+            return !isNaN(rowYear) && rowYear === parseInt(year);
         });
     }
-    if (params.patch) {
-        filteredData = filteredData.filter(row => row.patch === params.patch);
+
+    if (patch !== '') {
+        filteredData = filteredData.filter(row => row.patch === patch);
     }
-    if (params.league) {
-        if (params.league === 'tier1') {
+
+    if (leagueFilter !== '') {
+        if (leagueFilter === 'tier1') {
             const TIER1_LEAGUES = ['LCK', 'LPL', 'LEC', 'LCS', 'LTA', 'LTA N', 'WLDS', 'MSI', 'EWC', 'LCP'];
             filteredData = filteredData.filter(row => TIER1_LEAGUES.includes(row.league));
         } else {
-            filteredData = filteredData.filter(row => row.league === params.league);
+            filteredData = filteredData.filter(row => row.league === leagueFilter);
         }
     }
 
-    // Filtro por campeões do time 1
-    if (champs1.length > 0) {
-        filteredData = filteredData.filter(row => {
-            return champs1.every((champ, index) => {
-                const lane = lanes1[index];
-                const laneCol = lane ? `team_${lane}` : ['team_top', 'team_jng', 'team_mid', 'team_bot', 'team_sup'].find(col => row[col] === champ);
-                return laneCol && row[laneCol] === champ;
-            });
+    // Filtrar por campeões
+    filteredData = filteredData.filter(row => {
+        let effectiveChamps1 = confrontoDireto ? champs1 : [...champs1, ...champs2];
+        let effectiveLanes1 = confrontoDireto ? lanes1 : [...lanes1, ...lanes2];
+        let effectiveChamps2 = confrontoDireto ? champs2 : [];
+        let effectiveLanes2 = confrontoDireto ? lanes2 : [];
+
+        const teamMatch = effectiveChamps1.every((champ, index) => {
+            const lane = effectiveLanes1[index] || '';
+            const laneCol = lane ? `team_${lane}` : ['team_top', 'team_jng', 'team_mid', 'team_bot', 'team_sup'].find(col => row[col] === champ);
+            return laneCol && row[laneCol] === champ;
         });
+
+        const adversaMatch = effectiveChamps2.every((champ, index) => {
+            const lane = effectiveLanes2[index] || '';
+            const laneCol = lane ? `adversa_${lane}` : ['adversa_top', 'adversa_jng', 'adversa_mid', 'adversa_bot', 'adversa_sup'].find(col => row[col] === champ);
+            return laneCol && row[laneCol] === champ;
+        });
+
+        return teamMatch && adversaMatch;
+    });
+
+    // Filtro por jogos recentes
+    if (recentGames !== '') {
+        filteredData = filteredData.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
     }
 
-    // Filtro por campeões do time 2 (adversário)
-    if (champs2.length > 0) {
-        filteredData = filteredData.filter(row => {
-            return champs2.every((champ, index) => {
-                const lane = lanes2[index];
-                const laneCol = lane ? `adversa_${lane}` : ['adversa_top', 'adversa_jng', 'adversa_mid', 'adversa_bot', 'adversa_sup'].find(col => row[col] === champ);
-                return laneCol && row[laneCol] === champ;
-            });
-        });
-    }
+    // Gerar tabela
+    let tableContent = '<table>';
+    tableContent += '<thead><tr>';
+    tableContent += '<th>Patch</th>';
+    tableContent += '<th>Data</th>';
+    tableContent += '<th>Liga</th>';
+    tableContent += '<th>Time</th>';
+    tableContent += '<th>Vitória</th>';
+    tableContent += '<th>Top</th>';
+    tableContent += '<th>Jng</th>';
+    tableContent += '<th>Mid</th>';
+    tableContent += '<th>Bot</th>';
+    tableContent += '<th>Sup</th>';
+    tableContent += '<th>Adversário</th>';
+    tableContent += '<th>adv_Top</th>';
+    tableContent += '<th>adv_Jng</th>';
+    tableContent += '<th>adv_Mid</th>';
+    tableContent += '<th>adv_Bot</th>';
+    tableContent += '<th>adv_Sup</th>';
+    tableContent += '<th>Kills</th>';
+    tableContent += '<th>Tempo(min)</th>';
+    tableContent += '</tr></thead>';
 
-    // Aplicar lógica de Confronto Direto
-    if (params.confrontoDireto && champs1.length > 0 && champs2.length > 0) {
-        filteredData = filteredData.filter(row => {
-            return champs1.every((champ, index) => {
-                const lane = lanes1[index];
-                const laneCol = lane ? `team_${lane}` : ['team_top', 'team_jng', 'team_mid', 'team_bot', 'team_sup'].find(col => row[col] === champ);
-                return laneCol && row[laneCol] === champ;
-            }) && champs2.every((champ, index) => {
-                const lane = lanes2[index];
-                const laneCol = lane ? `adversa_${lane}` : ['adversa_top', 'adversa_jng', 'adversa_mid', 'adversa_bot', 'adversa_sup'].find(col => row[col] === champ);
-                return laneCol && row[laneCol] === champ;
-            });
-        });
-    }
+    tableContent += '<tbody>';
 
-    // Ordenar por data decrescente e aplicar recentGames
-    filteredData.sort((a, b) => new Date(b.date) - new Date(a.date));
-    if (params.recentGames) {
-        const recentLimit = parseInt(params.recentGames);
-        if (!isNaN(recentLimit) && recentLimit > 0) {
-            filteredData = filteredData.slice(0, recentLimit);
+    filteredData.forEach(row => {
+        tableContent += '<tr>';
+        tableContent += `<td>${row.patch || ''}</td>`;
+        tableContent += `<td>${row.date || ''}</td>`;
+        tableContent += `<td>${row.league || ''}</td>`;
+        tableContent += `<td>${row.teamname || ''}</td>`;
+        tableContent += `<td>${row.result || ''}</td>`;
+        tableContent += `<td>${row.team_top || ''}</td>`;
+        tableContent += `<td>${row.team_jng || ''}</td>`;
+        tableContent += `<td>${row.team_mid || ''}</td>`;
+        tableContent += `<td>${row.team_bot || ''}</td>`;
+        tableContent += `<td>${row.team_sup || ''}</td>`;
+        tableContent += `<td>${row.adversa_team || ''}</td>`;
+        tableContent += `<td>${row.adversa_top || ''}</td>`;
+        tableContent += `<td>${row.adversa_jng || ''}</td>`;
+        tableContent += `<td>${row.adversa_mid || ''}</td>`;
+        tableContent += `<td>${row.adversa_bot || ''}</td>`;
+        tableContent += `<td>${row.adversa_sup || ''}</td>`;
+        tableContent += `<td>${row.totalKills || ''}</td>`;
+        tableContent += `<td>${row.gamelength || ''}</td>`;
+        tableContent += '</tr>';
+    });
+
+    tableContent += '</tbody></table>';
+
+    const resultado = document.getElementById('games-table');
+    resultado.innerHTML = '';
+
+    // Gerar título e inseri-lo no .title-wrapper
+    const titleWrapper = document.querySelector('.title-wrapper');
+    if (titleWrapper) {
+        titleWrapper.innerHTML = ''; // Limpar conteúdo anterior
+        const h2 = document.createElement('h2');
+        let titleText = '';
+        if (champs1.length > 0 || champs2.length > 0) {
+            if (confrontoDireto) {
+                const team1Text = champs1.length > 0 ? champs1.join(' & ') : '';
+                const team2Text = champs2.length > 0 ? champs2.join(' & ') : '';
+                titleText = team1Text && team2Text ? `${team1Text} vs ${team2Text}` : team1Text || team2Text;
+            } else {
+                titleText = [...champs1, ...champs2].join(' & ');
+            }
+        } else {
+            titleText = 'Jogos Selecionados';
         }
+
+        if (patch !== '') titleText += ` (Patch ${patch})`;
+        if (year !== '') titleText += ` (${year})`;
+        if (leagueFilter !== '' && leagueFilter !== 'tier1') titleText += ` (${leagueFilter})`;
+        if (leagueFilter === 'tier1') titleText += ` (Campeonatos Tier 1)`;
+        if (recentGames !== '') titleText += ` (Últimos ${recentGames} jogos)`;
+
+        h2.textContent = titleText;
+        titleWrapper.appendChild(h2);
     }
 
-    if (filteredData.length === 0) {
-        const champsText = [...champs1, ...champs2].join(' & ');
-        document.getElementById('champ-info').innerHTML = `<p>Nenhuma partida encontrada para ${champsText} com os filtros aplicados!</p>`;
+    // Inserir tabela
+    resultado.insertAdjacentHTML('beforeend', tableContent);
+}
+
+function downloadCSV() {
+    if (!df) {
+        alert('Dados não carregados!');
         return;
     }
 
-    // Gerar título dinâmico
-    let filters = [];
-    if (params.year) filters.push(`${params.year}`);
-    if (params.patch) filters.push(`Patch ${params.patch}`);
-    if (params.league) filters.push(params.league === 'tier1' ? 'Campeonatos Tier 1' : params.league);
-    if (params.recentGames) filters.push(`Últimos ${params.recentGames} jogos`);
-    const filtersText = filters.length > 0 ? `(${filters.join(', ')})` : '(Todas as ligas)';
+    const { champs1, champs2, lanes1, lanes2, patch, year, leagueFilter, recentGames, confrontoDireto } = getQueryParams();
+    let filteredData = df;
 
-    let title;
-    if (params.confrontoDireto && champs1.length > 0 && champs2.length > 0) {
-        title = `Partidas de ${champs1.join(' & ')} vs ${champs2.join(' & ')} ${filtersText}`;
-    } else {
-        const champsText = [...champs1, ...champs2].join(' & ');
-        title = `Partidas de ${champsText} ${filtersText}`;
+    // Aplicar os mesmos filtros usados em filterGames
+    if (year !== '') {
+        filteredData = filteredData.filter(row => {
+            if (!row.date) return false;
+            const date = new Date(row.date);
+            const rowYear = date.getFullYear();
+            return !isNaN(rowYear) && rowYear === parseInt(year);
+        });
     }
 
-    // Adicionar título e botão de download
-    document.getElementById('champ-info').innerHTML = `
-        <div class="header-container">
-            <div class="title-wrapper">
-                <h2>${title}</h2>
-            </div>
-            <button id="download-csv" class="download-btn">Download</button>
-        </div>
-    `;
+    if (patch !== '') {
+        filteredData = filteredData.filter(row => row.patch === patch);
+    }
 
-    // Gerar tabela
-    let tableContent = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Liga</th>
-                    <th>Time</th>
-                    <th>Vitória</th>
-                    <th>Adversário</th>
-                    <th>Top</th>
-                    <th>Jungle</th>
-                    <th>Mid</th>
-                    <th>Bot</th>
-                    <th>Suporte</th>
-                    <th>adversa_Top</th>
-                    <th>adversa_Jng</th>
-                    <th>adversa_Mid</th>
-                    <th>adversa_Bot</th>
-                    <th>adversa_Sup</th>                   
-                </tr>
-            </thead>
-            <tbody>
-    `;
+    if (leagueFilter !== '') {
+        if (leagueFilter === 'tier1') {
+            const TIER1_LEAGUES = ['LCK', 'LPL', 'LEC', 'LCS', 'LTA', 'LTA N', 'WLDS', 'MSI', 'EWC', 'LCP'];
+            filteredData = filteredData.filter(row => TIER1_LEAGUES.includes(row.league));
+        } else {
+            filteredData = filteredData.filter(row => row.league === leagueFilter);
+        }
+    }
 
-    filteredData.forEach(row => {
-        tableContent += `
-            <tr>
-                <td>${row.date || '-'}</td>
-                <td>${row.league || '-'}</td>
-                <td>${row.teamname || '-'}</td>
-                <td>${row.result || '-'}</td>
-                <td>${row.adversa_team || '-'}</td>
-                <td>${row.team_top || '-'}</td>
-                <td>${row.team_jng || '-'}</td>
-                <td>${row.team_mid || '-'}</td>
-                <td>${row.team_bot || '-'}</td>
-                <td>${row.team_sup || '-'}</td>
-                <td>${row.adversa_top || '-'}</td>
-                <td>${row.adversa_jng || '-'}</td>
-                <td>${row.adversa_mid || '-'}</td>
-                <td>${row.adversa_bot || '-'}</td>
-                <td>${row.adversa_sup || '-'}</td>
-            </tr>
-        `;
+    filteredData = filteredData.filter(row => {
+        let effectiveChamps1 = confrontoDireto ? champs1 : [...champs1, ...champs2];
+        let effectiveLanes1 = confrontoDireto ? lanes1 : [...lanes1, ...lanes2];
+        let effectiveChamps2 = confrontoDireto ? champs2 : [];
+        let effectiveLanes2 = confrontoDireto ? lanes2 : [];
+
+        const teamMatch = effectiveChamps1.every((champ, index) => {
+            const lane = effectiveLanes1[index] || '';
+            const laneCol = lane ? `team_${lane}` : ['team_top', 'team_jng', 'team_mid', 'team_bot', 'team_sup'].find(col => row[col] === champ);
+            return laneCol && row[laneCol] === champ;
+        });
+
+        const adversaMatch = effectiveChamps2.every((champ, index) => {
+            const lane = effectiveLanes2[index] || '';
+            const laneCol = lane ? `adversa_${lane}` : ['adversa_top', 'adversa_jng', 'adversa_mid', 'adversa_bot', 'adversa_sup'].find(col => row[col] === champ);
+            return laneCol && row[laneCol] === champ;
+        });
+
+        return teamMatch && adversaMatch;
     });
 
-    tableContent += `</tbody></table>`;
-    document.getElementById('games-table').innerHTML = tableContent;
+    if (recentGames !== '') {
+        filteredData = filteredData.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
+    }
 
-    // Adicionar evento de clique ao botão de download
-    document.getElementById('download-csv').addEventListener('click', () => {
-        exportToCSV(filteredData, title);
+    // Definir os nomes das colunas conforme exibidos na tabela
+    const columnOrder = [
+        { display: 'Patch', original: 'patch' },
+        { display: 'Data', original: 'date' },
+        { display: 'Liga', original: 'league' },
+        { display: 'Time', original: 'teamname' },
+        { display: 'Vitória', original: 'result' },
+        { display: 'Top', original: 'team_top' },
+        { display: 'Jng', original: 'team_jng' },
+        { display: 'Mid', original: 'team_mid' },
+        { display: 'Bot', original: 'team_bot' },
+        { display: 'Sup', original: 'team_sup' },
+        { display: 'Adversário', original: 'adversa_team' },
+        { display: 'adv_Top', original: 'adversa_top' },
+        { display: 'adv_Jng', original: 'adversa_jng' },
+        { display: 'adv_Mid', original: 'adversa_mid' },
+        { display: 'adv_Bot', original: 'adversa_bot' },
+        { display: 'adv_Sup', original: 'adversa_sup' },
+        { display: 'Kills', original: 'totalKills' },
+        { display: 'Tempo(min)', original: 'gamelength' }
+    ];
+
+    // Transformar dados para corresponder aos nomes e ordem das colunas da tabela
+    const transformedData = filteredData.map(row => {
+        const newRow = {};
+        columnOrder.forEach(col => {
+            newRow[col.display] = row[col.original] || '';
+        });
+        return newRow;
     });
+
+    // Converter para CSV usando Papa.unparse
+    const csv = Papa.unparse(transformedData, {
+        header: true,
+        delimiter: ',',
+        quotes: true,
+        columns: columnOrder.map(col => col.display) // Definir ordem das colunas
+    });
+
+    // Gerar nome do arquivo com base nos filtros
+    let fileName = '';
+    if (champs1.length > 0 || champs2.length > 0) {
+        if (confrontoDireto) {
+            const team1Text = champs1.length > 0 ? champs1.join('_') : '';
+            const team2Text = champs2.length > 0 ? champs2.join('_') : '';
+            fileName = team1Text && team2Text ? `${team1Text}_vs_${team2Text}` : team1Text || team2Text;
+        } else {
+            fileName = [...champs1, ...champs2].join('_');
+        }
+    } else {
+        fileName = 'Jogos_Selecionados';
+    }
+
+    if (patch !== '') fileName += `_Patch_${patch}`;
+    if (year !== '') fileName += `_${year}`;
+    if (leagueFilter !== '' && leagueFilter !== 'tier1') fileName += `_${leagueFilter}`;
+    if (leagueFilter === 'tier1') fileName += `_Tier1`;
+    if (recentGames !== '') fileName += `_Ultimos_${recentGames}_jogos`;
+
+    // Substituir caracteres inválidos para nomes de arquivos
+    fileName = fileName.replace(/[^a-zA-Z0-9_-]/g, '_') + '.csv';
+
+    // Criar blob e iniciar download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
-// Iniciar o carregamento do CSV quando a página carrega
 window.onload = loadCSV;
