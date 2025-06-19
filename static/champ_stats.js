@@ -27,6 +27,7 @@ function loadCSV() {
             populateChampions();
             populatePatches();
             populateLeagues();
+            
             // Exibir melhores campeões do meta ao carregar a página
             displayBestChampsMeta();
         },

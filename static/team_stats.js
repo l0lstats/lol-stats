@@ -110,14 +110,16 @@ Papa.parse('BaseDadosTeam.csv', {
                 console.log(`Data: ${row.date}, Ano extraído: ${date.getFullYear()}`);
             }
         })
-        carregarTimes();
         carregarLigas();
+        carregarTimes();
         carregarSides();
         // Adicionar eventos para atualizar dinamicamente
-        document.getElementById('year-filter').onchange = carregarTimes;
+        document.getElementById('year-filter').onchange = () => {
+            carregarLigas();
+            carregarTimes();
+        };
         document.getElementById('liga').onchange = carregarTimes;
-        document.getElementById('side').onchange = carregarTimes;
-        document.getElementById('result-filter').onchange = carregarTimes;
+        
         esconderLoader();
     },
     error: function(error) {
@@ -146,25 +148,6 @@ function carregarLigas() {
     });
 }
 
-function carregarSides() {
-    const yearFilter = document.getElementById('year-filter').value;
-    let dfFiltered = yearFilter === '' ? df : df.filter(row => {
-        if (!row.date) return false;
-        const date = new Date(row.date);
-        const year = date.getFullYear();
-        return !isNaN(year) && year === parseInt(yearFilter);
-    });
-
-    const sides = [...new Set(dfFiltered.map(row => row.side).filter(side => side))].sort();
-    const selectSide = document.getElementById('side');
-    selectSide.innerHTML = '<option value="">Todos os lados</option>';
-    sides.forEach(side => {
-        const option = document.createElement('option');
-        option.value = side;
-        option.textContent = side;
-        selectSide.appendChild(option);
-    });
-}
 
 function carregarTimes() {
     const liga = document.getElementById('liga').value;
@@ -226,6 +209,27 @@ function carregarTimes() {
     time1Input.value = time1Selecionado;
     if (time2Selecionado) time2Input.value = time2Selecionado;
 }
+
+function carregarSides() {
+    const yearFilter = document.getElementById('year-filter').value;
+    let dfFiltered = yearFilter === '' ? df : df.filter(row => {
+        if (!row.date) return false;
+        const date = new Date(row.date);
+        const year = date.getFullYear();
+        return !isNaN(year) && year === parseInt(yearFilter);
+    });
+
+    const sides = [...new Set(dfFiltered.map(row => row.side).filter(side => side))].sort();
+    const selectSide = document.getElementById('side');
+    selectSide.innerHTML = '<option value="">Todos os lados</option>';
+    sides.forEach(side => {
+        const option = document.createElement('option');
+        option.value = side;
+        option.textContent = side;
+        selectSide.appendChild(option);
+    });
+}
+
 
 function calcularKillStats(dados, killLine) {
     const totalJogos = dados.length;

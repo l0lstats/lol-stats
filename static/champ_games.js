@@ -15,12 +15,14 @@ function loadCSV() {
             });
             console.log('CSV carregado, primeiros 5:', df.slice(0, 5));
             filterGames();
+            
         },
         error: function(error) {
             console.error('Erro ao carregar CSV:', error);
             alert('Erro ao carregar os dados! Verifique se o arquivo está disponível.');
             document.getElementById('games-table').innerHTML = '';
         }
+        
     });
 }
 
