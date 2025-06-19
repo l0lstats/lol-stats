@@ -22,30 +22,24 @@ function loadCSV() {
 function getQueryParams() {
     const params = new URLSearchParams(window.location.search);
     const players1 = [];
-    const lanes1 = [];
     const players2 = [];
-    const lanes2 = [];
     let i = 1;
 
-    // Extrair players1 e lanes1
+    // Extrair players1
     while (params.has(`player1_${i}`)) {
         players1.push(decodeURIComponent(params.get(`player1_${i}`)));
-        lanes1.push(params.get(`lane1_${i}`) || '');
         i++;
     }
 
     i = 1;
     while (params.has(`player2_${i}`)) {
         players2.push(decodeURIComponent(params.get(`player2_${i}`)));
-        lanes2.push(params.get(`lane2_${i}`) || '');
         i++;
     }
 
     return {
         players1,
         players2,
-        lanes1,
-        lanes2,
         year: params.get('year') || '',
         leagueFilter: params.get('league') || '',
         confrontoDireto: params.get('confrontoDireto') === 'true',
@@ -59,7 +53,7 @@ function filterGames() {
         return;
     }
 
-    const { players1, players2, lanes1, lanes2, year, leagueFilter, confrontoDireto, champion } = getQueryParams();
+    const { players1, players2, year, leagueFilter, confrontoDireto, champion } = getQueryParams();
 
     let filteredData = df;
 
@@ -84,18 +78,13 @@ function filterGames() {
     // Filtrar por jogadores
     filteredData = filteredData.filter(row => {
         let effectivePlayers1 = confrontoDireto ? players1 : [...players1, ...players2];
-        let effectiveLanes1 = confrontoDireto ? lanes1 : [...lanes1, ...lanes2];
         let effectivePlayers2 = confrontoDireto ? players2 : [];
-        let effectiveLanes2 = confrontoDireto ? lanes2 : [];
 
-        const playerMatch = effectivePlayers1.some((player, index) => {
-            const lane = effectiveLanes1[index] || row.position?.toLowerCase();
-            return row.playername === player && (!lane || row.position?.toLowerCase() === lane);
-        });
+        const playerMatch = effectivePlayers1.includes(row.playername);
 
         if (confrontoDireto && effectivePlayers2.length > 0) {
-            const lane2 = effectiveLanes2[0] || row.position?.toLowerCase();
-            const adversaCol = `adversa_player_${lane2}`;
+            const lane = row.position?.toLowerCase();
+            const adversaCol = `adversa_player_${lane}`;
             return playerMatch && effectivePlayers2.includes(row[adversaCol]);
         }
 
@@ -108,6 +97,7 @@ function filterGames() {
     tableContent += '<th>Data</th>';
     tableContent += '<th>Liga</th>';
     tableContent += '<th>Time</th>';
+    tableContent += '<th>Posição</th>';
     tableContent += '<th>Jogador</th>';
     tableContent += '<th>Campeão</th>';
     tableContent += '<th>Vitória</th>';
@@ -121,12 +111,13 @@ function filterGames() {
     tableContent += '<tbody>';
 
     filteredData.forEach(row => {
-        const lane = confrontoDireto && players2.length > 0 ? lanes2[0] || row.position?.toLowerCase() : row.position?.toLowerCase();
+        const lane = row.position?.toLowerCase();
         const adversaCol = `adversa_player_${lane}`;
         tableContent += '<tr>';
         tableContent += `<td>${row.date || ''}</td>`;
         tableContent += `<td>${row.league || ''}</td>`;
         tableContent += `<td>${row.teamname || ''}</td>`;
+        tableContent += `<td>${row.position || ''}</td>`;
         tableContent += `<td>${row.playername || ''}</td>`;
         tableContent += `<td>${row.champion || ''}</td>`;
         tableContent += `<td>${row.result || ''}</td>`;
@@ -179,7 +170,7 @@ function downloadCSV() {
         return;
     }
 
-    const { players1, players2, lanes1, lanes2, year, leagueFilter, confrontoDireto, champion } = getQueryParams();
+    const { players1, players2, year, leagueFilter, confrontoDireto, champion } = getQueryParams();
     let filteredData = df;
 
     // Aplicar os mesmos filtros usados em filterGames
@@ -202,18 +193,13 @@ function downloadCSV() {
 
     filteredData = filteredData.filter(row => {
         let effectivePlayers1 = confrontoDireto ? players1 : [...players1, ...players2];
-        let effectiveLanes1 = confrontoDireto ? lanes1 : [...lanes1, ...lanes2];
         let effectivePlayers2 = confrontoDireto ? players2 : [];
-        let effectiveLanes2 = confrontoDireto ? lanes2 : [];
 
-        const playerMatch = effectivePlayers1.some((player, index) => {
-            const lane = effectiveLanes1[index] || row.position?.toLowerCase();
-            return row.playername === player && (!lane || row.position?.toLowerCase() === lane);
-        });
+        const playerMatch = effectivePlayers1.includes(row.playername);
 
         if (confrontoDireto && effectivePlayers2.length > 0) {
-            const lane2 = effectiveLanes2[0] || row.position?.toLowerCase();
-            const adversaCol = `adversa_player_${lane2}`;
+            const lane = row.position?.toLowerCase();
+            const adversaCol = `adversa_player_${lane}`;
             return playerMatch && effectivePlayers2.includes(row[adversaCol]);
         }
 
@@ -225,6 +211,7 @@ function downloadCSV() {
         { display: 'Data', original: 'date' },
         { display: 'Liga', original: 'league' },
         { display: 'Time', original: 'teamname' },
+        { display: 'Posição', original: 'position' },
         { display: 'Jogador', original: 'playername' },
         { display: 'Campeão', original: 'champion' },
         { display: 'Vitória', original: 'result' },
@@ -238,7 +225,7 @@ function downloadCSV() {
     // Transformar dados para corresponder aos nomes e ordem das colunas da tabela
     const transformedData = filteredData.map(row => {
         const newRow = {};
-        const lane = confrontoDireto && players2.length > 0 ? lanes2[0] || row.position?.toLowerCase() : row.position?.toLowerCase();
+        const lane = row.position?.toLowerCase();
         const adversaCol = `adversa_player_${lane}`;
         columnOrder.forEach(col => {
             if (col.display === 'Jogador Adversário') {
