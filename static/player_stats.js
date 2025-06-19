@@ -1,11 +1,20 @@
 let df = null;
 let isConfrontoDireto = false;
 
+function mostrarLoader() {
+    document.getElementById('loader').style.display = 'flex';
+}
+
+function esconderLoader() {
+    document.getElementById('loader').style.display = 'none';
+}
+
 function loadCSV() {
     Papa.parse('BaseDadosPlayer.csv', {
         download: true,
         header: true,
         complete: function(results) {
+            mostrarLoader();
             df = results.data;
             populateLeagues();
             populatePlayers();
@@ -14,6 +23,7 @@ function loadCSV() {
                 populateLeagues();
                 populatePlayers();
             };
+            esconderLoader();
         }
     });
 }
@@ -85,7 +95,7 @@ function updatePlayerImage(playerId) {
         const cleanName = getCleanPlayerName(playerInput.value);
         const imgUrl = `https://dpm.lol/esport/players/${cleanName}.webp`;
         const placeholderUrl = `https://dpm.lol/esport/players/NoPicture.webp`;
-        imageDiv.innerHTML = `<div class="kda" id="${playerId}-kda"></div><img src="${imgUrl}" alt="${playerInput.value}" onerror="this.src='${placeholderUrl}'; this.onerror=null;"><div class="lane" id="${playerId}-lane" style="display: none;"></div>`;
+        imageDiv.innerHTML = `<div class="kda" id="${playerId}-kda"></div><img class="player-img" src="${imgUrl}" alt="${playerInput.value}" onerror="this.src='${placeholderUrl}'; this.onerror=null;"><div class="lane" id="${playerId}-lane" style="display: none;"></div>`;
     } else {
         imageDiv.innerHTML = '';
     }
@@ -125,8 +135,28 @@ function updateChampionImage(champId, playerName, filteredData) {
             const games = filteredChampData.length;
             const wins = filteredChampData.reduce((sum, row) => sum + (parseInt(row.result) === 1 ? 1 : 0), 0);
             const winrate = ((wins / games) * 100).toFixed(2);
+            const yearFilter = document.getElementById('year-filter').value;
+            const leagueFilter = document.getElementById('league-filter').value;
+            const urlParams = new URLSearchParams();
+            urlParams.append('player1_1', encodeURIComponent(playerName));
+            const lane = getPlayerLane(playerName, filteredData);
+            if (lane) urlParams.append('lane1_1', lane);
+            if (yearFilter) urlParams.append('year', yearFilter);
+            if (leagueFilter) urlParams.append('league', leagueFilter);
+            if (isConfrontoDireto) {
+                const otherPlayer = champId === 'champ-player1_1' ? document.getElementById('player2_1').value : document.getElementById('player1_1').value;
+                if (otherPlayer) {
+                    urlParams.append('player2_1', encodeURIComponent(otherPlayer));
+                    const otherLane = getPlayerLane(otherPlayer, df);
+                    if (otherLane) urlParams.append('lane2_1', otherLane);
+                    urlParams.append('confrontoDireto', 'true');
+                }
+            }
+            urlParams.append('champion', encodeURIComponent(champInput.value));
+            const gamesLink = `player_games.html?${urlParams.toString()}`;
             imageDiv.innerHTML = `
                 <div class="champion-stats">
+                    <a href="${gamesLink}" target="_blank" class="games-link">Partidas</a>
                     <div class="winrate">${winrate}%</div>
                     <img src="${imgUrl}" alt="${champInput.value}" onerror="this.src='${placeholderUrl}'; this.onerror=null;">
                     <div class="games">${games} jogos</div>
@@ -159,6 +189,29 @@ function getTopChampions(playerName, filteredData) {
     return champions;
 }
 
+function generatePlayerGamesLink(players1, lanes1, players2 = [], lanes2 = [], champion = null) {
+    const urlParams = new URLSearchParams();
+    if (players1[0]) {
+        urlParams.append('player1_1', encodeURIComponent(players1[0]));
+        if (lanes1[0]) urlParams.append('lane1_1', lanes1[0]);
+    }
+    if (players2[0]) {
+        urlParams.append('player2_1', encodeURIComponent(players2[0]));
+        if (lanes2[0]) urlParams.append('lane2_1', lanes2[0]);
+    }
+    const year = document.getElementById('year-filter').value;
+    if (year) urlParams.append('year', year);
+    const league = document.getElementById('league-filter').value;
+    if (league) urlParams.append('league', league);
+    if (isConfrontoDireto && players2.length > 0) {
+        urlParams.append('confrontoDireto', 'true');
+    }
+    if (champion) {
+        urlParams.append('champion', encodeURIComponent(champion));
+    }
+    return `player_games.html?${urlParams.toString()}`;
+}
+
 function gerarChampionSection(playerId, playerName, filteredData, otherPlayerName = null) {
     if (!playerName) return '';
     const cleanName = getCleanPlayerName(playerName);
@@ -166,10 +219,23 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
     const placeholderUrl = `https://dpm.lol/esport/players/NoPicture.webp`;
     const topChampions = getTopChampions(playerName, filteredData);
     
-    // Gerar título dinâmico
-    let titleText = `Campeões de ${playerName}`;
-    if (isConfrontoDireto && otherPlayerName) {
-        titleText = `Campeões de ${playerName} vs ${otherPlayerName}`;
+    // Gerar título sem link
+    const selectedPlayers1 = playerName ? [{ name: playerName, lane: getPlayerLane(playerName, filteredData) }] : [];
+    const selectedPlayers2 = otherPlayerName ? [{ name: otherPlayerName, lane: getPlayerLane(otherPlayerName, df) }] : [];
+    const yearFilter = document.getElementById('year-filter').value;
+    const leagueFilter = document.getElementById('league-filter').value;
+    
+    let titleText = '';
+    if (isConfrontoDireto && selectedPlayers1.length > 0 && selectedPlayers2.length > 0) {
+        titleText = `${selectedPlayers1[0].name} vs ${selectedPlayers2[0].name}`;
+    } else if (selectedPlayers1.length > 0) {
+        titleText = selectedPlayers1[0].name;
+    }
+    let filters = [];
+    if (yearFilter) filters.push(yearFilter);
+    if (leagueFilter) filters.push(leagueFilter);
+    if (filters.length > 0) {
+        titleText += ` (${filters.join(', ')})`;
     }
     
     let content = `
@@ -250,7 +316,7 @@ function calcularMedias(dados, isTeam2 = false) {
         Vitórias: vitorias,
         'Vitórias (%)': winRate,
         KDA: kda,
-        'Mais Kills que Oponente (%)': killsVsOpponent,
+        'Mais Kills que o oponente (%)': killsVsOpponent,
         'Participação de Kills (%)': avgKPC,
         'Dano/Gold': avgDPG,
         'CS/minuto': avgCSPM,
@@ -318,9 +384,9 @@ function gerarTabela(medias1, medias2, killStats1, killStats2, deathStats1, deat
     if (selectedPlayers2.length > 0) tableContent += `<td>${deathStats2.percentAbove}%</td>`;
     tableContent += '</tr>';
 
-    tableContent += `<tr><td>Mais Kills que Oponente de Lane</td>`;
-    if (selectedPlayers1.length > 0) tableContent += `<td>${medias1['Mais Kills que Oponente (%)']}%</td>`;
-    if (selectedPlayers2.length > 0) tableContent += `<td>${medias2['Mais Kills que Oponente (%)']}%</td>`;
+    tableContent += `<tr><td>Mais Kills que o oponente de Lane</td>`;
+    if (selectedPlayers1.length > 0) tableContent += `<td>${medias1['Mais Kills que o oponente (%)']}%</td>`;
+    if (selectedPlayers2.length > 0) tableContent += `<td>${medias2['Mais Kills que o oponente (%)']}%</td>`;
     tableContent += '</tr>';
 
     tableContent += `<tr><td>Participação de Kills / Jogo</td>`;
@@ -347,26 +413,6 @@ function gerarTabela(medias1, medias2, killStats1, killStats2, deathStats1, deat
     return tableContent;
 }
 
-function generatePlayerGamesLink(players1, lanes1, players2 = [], lanes2 = []) {
-    const urlParams = new URLSearchParams();
-    if (players1[0]) {
-        urlParams.append('player1_1', encodeURIComponent(players1[0]));
-        if (lanes1[0]) urlParams.append('lane1_1', lanes1[0]);
-    }
-    if (players2[0]) {
-        urlParams.append('player2_1', encodeURIComponent(players2[0]));
-        if (lanes2[0]) urlParams.append('lane2_1', lanes2[0]);
-    }
-    const year = document.getElementById('year-filter').value;
-    if (year) urlParams.append('year', year);
-    const league = document.getElementById('league-filter').value;
-    if (league) urlParams.append('league', league);
-    if (isConfrontoDireto && players2.length > 0) {
-        urlParams.append('confrontoDireto', 'true');
-    }
-    return `player_games.html?${urlParams.toString()}`;
-}
-
 function gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilter, isConfrontoDireto) {
     const h2 = document.createElement('h2');
     if (selectedPlayers1.length === 0 && selectedPlayers2.length === 0) {
@@ -381,7 +427,7 @@ function gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilte
                 selectedPlayers2.map(p => p.lane)
             );
             link.target = '_blank';
-            link.textContent = `Partidas de ${selectedPlayers1[0].name} vs ${selectedPlayers2[0].name}`;
+            link.textContent = `${selectedPlayers1[0].name} vs ${selectedPlayers2[0].name}`;
             link.className = 'confronto-link';
             h2.appendChild(link);
         } else {
@@ -414,7 +460,7 @@ function gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilte
             }
         }
         let filters = [];
-        if (yearFilter) filters.push(`${yearFilter}`);
+        if (yearFilter) filters.push(yearFilter);
         if (leagueFilter) filters.push(leagueFilter);
         if (filters.length > 0) {
             h2.appendChild(document.createTextNode(` (${filters.join(', ')})`));
@@ -428,6 +474,17 @@ function updateLaneDisplay(playerId, lane) {
     if (laneDiv && lane) {
         laneDiv.style.display = 'block';
         laneDiv.textContent = lane.charAt(0).toUpperCase() + lane.slice(1).toLowerCase();
+    }
+}
+
+function getKDAColor(kda) {
+    const kdaValue = parseFloat(kda);
+    if (kdaValue < 3) {
+        return '#ff0000'; // Vermelho
+    } else if (kdaValue >= 3 && kdaValue < 4) {
+        return '#ffa500'; // Laranja
+    } else {
+        return '#00ff00'; // Verde
     }
 }
 
@@ -474,7 +531,7 @@ function generateStats() {
         Vitórias: 0,
         'Vitórias (%)': 0,
         KDA: 0,
-        'Mais Kills que Oponente (%)': 0,
+        'Mais Kills que o oponente (%)': 0,
         'Participação de Kills (%)': 0,
         'Dano/Gold': 0,
         'CS/minuto': 0,
@@ -485,7 +542,7 @@ function generateStats() {
         Vitórias: 0,
         'Vitórias (%)': 0,
         KDA: 0,
-        'Mais Kills que Oponente (%)': 0,
+        'Mais Kills que o oponente (%)': 0,
         'Participação de Kills (%)': 0,
         'Dano/Gold': 0,
         'CS/minuto': 0,
@@ -504,11 +561,15 @@ function generateStats() {
     resultado.insertAdjacentHTML('beforeend', tableContent);
 
     if (selectedPlayers1.length > 0) {
-        document.getElementById('player1_1-kda').textContent = `KDA ${medias1.KDA}`;
+        const kdaElement1 = document.getElementById('player1_1-kda');
+        kdaElement1.textContent = `KDA ${medias1.KDA}`;
+        kdaElement1.style.color = getKDAColor(medias1.KDA);
         updateLaneDisplay('player1_1', selectedPlayers1[0].lane);
     }
     if (selectedPlayers2.length > 0) {
-        document.getElementById('player2_1-kda').textContent = `KDA ${medias2.KDA}`;
+        const kdaElement2 = document.getElementById('player2_1-kda');
+        kdaElement2.textContent = `KDA ${medias2.KDA}`;
+        kdaElement2.style.color = getKDAColor(medias2.KDA);
         updateLaneDisplay('player2_1', selectedPlayers2[0].lane);
     }
 
@@ -570,7 +631,7 @@ function confrontoDireto() {
         Vitórias: 0,
         'Vitórias (%)': 0,
         KDA: 0,
-        'Mais Kills que Oponente (%)': 0,
+        'Mais Kills que o oponente (%)': 0,
         'Participação de Kills (%)': 0,
         'Dano/Gold': 0,
         'CS/minuto': 0,
@@ -581,7 +642,7 @@ function confrontoDireto() {
         Vitórias: 0,
         'Vitórias (%)': 0,
         KDA: 0,
-        'Mais Kills que Oponente (%)': 0,
+        'Mais Kills que o oponente (%)': 0,
         'Participação de Kills (%)': 0,
         'Dano/Gold': 0,
         'CS/minuto': 0,
@@ -600,11 +661,15 @@ function confrontoDireto() {
     resultado.insertAdjacentHTML('beforeend', tableContent);
 
     if (selectedPlayers1.length > 0) {
-        document.getElementById('player1_1-kda').textContent = `KDA ${medias1.KDA}`;
+        const kdaElement1 = document.getElementById('player1_1-kda');
+        kdaElement1.textContent = `KDA ${medias1.KDA}`;
+        kdaElement1.style.color = getKDAColor(medias1.KDA);
         updateLaneDisplay('player1_1', selectedPlayers1[0].lane);
     }
     if (selectedPlayers2.length > 0) {
-        document.getElementById('player2_1-kda').textContent = `KDA ${medias2.KDA}`;
+        const kdaElement2 = document.getElementById('player2_1-kda');
+        kdaElement2.textContent = `KDA ${medias2.KDA}`;
+        kdaElement2.style.color = getKDAColor(medias2.KDA);
         updateLaneDisplay('player2_1', selectedPlayers2[0].lane);
     }
 

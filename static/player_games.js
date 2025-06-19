@@ -48,7 +48,8 @@ function getQueryParams() {
         lanes2,
         year: params.get('year') || '',
         leagueFilter: params.get('league') || '',
-        confrontoDireto: params.get('confrontoDireto') === 'true'
+        confrontoDireto: params.get('confrontoDireto') === 'true',
+        champion: params.get('champion') ? decodeURIComponent(params.get('champion')) : ''
     };
 }
 
@@ -58,7 +59,7 @@ function filterGames() {
         return;
     }
 
-    const { players1, players2, lanes1, lanes2, year, leagueFilter, confrontoDireto } = getQueryParams();
+    const { players1, players2, lanes1, lanes2, year, leagueFilter, confrontoDireto, champion } = getQueryParams();
 
     let filteredData = df;
 
@@ -76,6 +77,10 @@ function filterGames() {
         filteredData = filteredData.filter(row => row.league === leagueFilter);
     }
 
+    if (champion !== '') {
+        filteredData = filteredData.filter(row => row.champion === champion);
+    }
+
     // Filtrar por jogadores
     filteredData = filteredData.filter(row => {
         let effectivePlayers1 = confrontoDireto ? players1 : [...players1, ...players2];
@@ -89,8 +94,8 @@ function filterGames() {
         });
 
         if (confrontoDireto && effectivePlayers2.length > 0) {
-            const lane1 = effectiveLanes1[0] || row.position?.toLowerCase();
-            const adversaCol = `adversa_player_${lane1}`;
+            const lane2 = effectiveLanes2[0] || row.position?.toLowerCase();
+            const adversaCol = `adversa_player_${lane2}`;
             return playerMatch && effectivePlayers2.includes(row[adversaCol]);
         }
 
@@ -116,7 +121,7 @@ function filterGames() {
     tableContent += '<tbody>';
 
     filteredData.forEach(row => {
-        const lane = row.position?.toLowerCase();
+        const lane = confrontoDireto && players2.length > 0 ? lanes2[0] || row.position?.toLowerCase() : row.position?.toLowerCase();
         const adversaCol = `adversa_player_${lane}`;
         tableContent += '<tr>';
         tableContent += `<td>${row.date || ''}</td>`;
@@ -124,7 +129,7 @@ function filterGames() {
         tableContent += `<td>${row.teamname || ''}</td>`;
         tableContent += `<td>${row.playername || ''}</td>`;
         tableContent += `<td>${row.champion || ''}</td>`;
-        tableContent += `<td>${row.result === '1' ? 'Sim' : 'Não'}</td>`;
+        tableContent += `<td>${row.result || ''}</td>`;
         tableContent += `<td>${row.kills || ''}</td>`;
         tableContent += `<td>${row.deaths || ''}</td>`;
         tableContent += `<td>${row.assists || ''}</td>`;
@@ -152,6 +157,7 @@ function filterGames() {
             } else {
                 titleText = [...players1, ...players2].join(' & ');
             }
+            if (champion !== '') titleText += ` (${champion})`;
         } else {
             titleText = 'Jogos Selecionados';
         }
@@ -173,7 +179,7 @@ function downloadCSV() {
         return;
     }
 
-    const { players1, players2, lanes1, lanes2, year, leagueFilter, confrontoDireto } = getQueryParams();
+    const { players1, players2, lanes1, lanes2, year, leagueFilter, confrontoDireto, champion } = getQueryParams();
     let filteredData = df;
 
     // Aplicar os mesmos filtros usados em filterGames
@@ -190,6 +196,10 @@ function downloadCSV() {
         filteredData = filteredData.filter(row => row.league === leagueFilter);
     }
 
+    if (champion !== '') {
+        filteredData = filteredData.filter(row => row.champion === champion);
+    }
+
     filteredData = filteredData.filter(row => {
         let effectivePlayers1 = confrontoDireto ? players1 : [...players1, ...players2];
         let effectiveLanes1 = confrontoDireto ? lanes1 : [...lanes1, ...lanes2];
@@ -202,8 +212,8 @@ function downloadCSV() {
         });
 
         if (confrontoDireto && effectivePlayers2.length > 0) {
-            const lane1 = effectiveLanes1[0] || row.position?.toLowerCase();
-            const adversaCol = `adversa_player_${lane1}`;
+            const lane2 = effectiveLanes2[0] || row.position?.toLowerCase();
+            const adversaCol = `adversa_player_${lane2}`;
             return playerMatch && effectivePlayers2.includes(row[adversaCol]);
         }
 
@@ -221,20 +231,18 @@ function downloadCSV() {
         { display: 'Kills', original: 'kills' },
         { display: 'Deaths', original: 'deaths' },
         { display: 'Assists', original: 'assists' },
-        { display: 'Jogador Adversário', original: null }, // Calculado dinamicamente
+        { display: 'Jogador Adversário', original: null },
         { display: 'Time Adversário', original: 'adversa_team' }
     ];
 
     // Transformar dados para corresponder aos nomes e ordem das colunas da tabela
     const transformedData = filteredData.map(row => {
         const newRow = {};
-        const lane = row.position?.toLowerCase();
+        const lane = confrontoDireto && players2.length > 0 ? lanes2[0] || row.position?.toLowerCase() : row.position?.toLowerCase();
         const adversaCol = `adversa_player_${lane}`;
         columnOrder.forEach(col => {
             if (col.display === 'Jogador Adversário') {
                 newRow[col.display] = row[adversaCol] || '';
-            } else if (col.display === 'Vitória') {
-                newRow[col.display] = row[col.original] === '1' ? 'Sim' : 'Não';
             } else {
                 newRow[col.display] = row[col.original] || '';
             }
@@ -260,6 +268,7 @@ function downloadCSV() {
         } else {
             fileName = [...players1, ...players2].join('_');
         }
+        if (champion !== '') fileName += `_${champion}`;
     } else {
         fileName = 'Jogos_Selecionados';
     }

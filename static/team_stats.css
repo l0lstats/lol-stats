@@ -229,18 +229,7 @@ a:visited {
     z-index: 9999;
 }
 
-.loader {
-    border: 8px solid #ccc;
-    border-top: 8px solid #00ffcc;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    animation: spin 1s linear infinite;
-}
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
 .loader-overlay {
     position: fixed;
     top: 0;
@@ -271,4 +260,5 @@ a:visited {
     font-size: 18px;
     font-family: Arial, sans-serif;
     text-align: center;
+    margin-top: -30px;
 }
