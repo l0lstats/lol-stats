@@ -30,7 +30,7 @@ function loadCSV() {
         header: true,
         complete: function(results) {
             df = results.data;
-            console.log('CSV carregado, primeiros 5 registros:', df.slice(0, 5));
+            console.log('CSV carregado, 1ºs 5 registros:', df.slice(0, 5));
             displayTeamData();
         },
         error: function(error) {
@@ -45,7 +45,7 @@ function exportToCSV(filteredData, title) {
     // Definir os cabeçalhos do CSV (em português, como na tabela)
     const headers = [
         'Data', 'Liga', 'Lado', 'Vitória', 'Adversário', 'Tempo(min)',
-        'Kills', 'Deaths', 'Primeira Torre', 'Primeiro Dragão', 'Primeiro Sangue',
+        'Kills', 'Deaths', '1ª Torre', '1º Dragão', '1º Sangue',
         'Total Dragões', 'Total Barons', 'Total Torres', 'Total Inibidores'
     ];
 
@@ -180,9 +180,9 @@ function displayTeamData() {
                     <th>Tempo(min)</th>
                     <th>Kills</th>
                     <th>Deaths</th>
-                    <th>Primeira Torre</th>
-                    <th>Primeiro Dragão</th>
-                    <th>Primeiro Sangue</th>
+                    <th>1ª Torre</th>
+                    <th>1º Dragão</th>
+                    <th>1º Sangue</th>
                     <th>Total Dragões</th>
                     <th>Total Barons</th>
                     <th>Total Torres</th>

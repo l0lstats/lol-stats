@@ -103,10 +103,10 @@ function updatePlayerImage(playerId) {
         
         // Exceções para imagens específicas de jogadores
         if (playerInput.value === "xPeke") {
-            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/c/c0/OG_xPeke_2016_Summer.png/revision/latest?cb=20170802082727";
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/c/c0/OG_xPeke_2016_Summer.png";
         }
         if (playerInput.value === "Kami") {
-            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/82/PNG_Kami_2020_Split_1.png/revision/latest/scale-to-width-down/220?cb=20200129172823";
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/82/PNG_Kami_2020_Split_1.png";
         }
         if (playerInput.value === "4LaN") {
             imgUrl = "https://img.freepik.com/fotos-gratis/vista-frontal-da-mao-mostrando-a-palma_23-2148775895.jpg?semt=ais_hybrid&w=740";
@@ -115,28 +115,28 @@ function updatePlayerImage(playerId) {
             imgUrl = "https://media.tenor.com/_3HkBReYdCAAAAAj/malphite-laugh.gif";
         }
         if (playerInput.value === "Mylon") {
-            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/4/4f/PaiN_Mylon_2016_Summer.png/revision/latest?cb=20170802090950";
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/4/4f/PaiN_Mylon_2016_Summer.png";
         }
         if (playerInput.value === "Lep") {
-            imgUrl = "https://i.ytimg.com/vi/glfVATRm8RY/maxresdefault.jpg";
+            imgUrl = "https://i.makeagif.com/media/2-05-2021/fog5cD.gif";
         }
         if (playerInput.value === "Klaus") {
-            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/3/3a/VK_Klaus_2020_Split_1.png/revision/latest/scale-to-width-down/220?cb=20200129162300";
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/3/3a/VK_Klaus_2020_Split_1.png";
         }
         if (playerInput.value === "brTT") {
-            imgUrl = "https://pbs.twimg.com/media/F66f7ysWkAEcjjE.jpg";
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/4/42/LOS_brTT_2024_Split_2_player.png";
         }
         if (playerInput.value === "Baiano") {
-            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/5/59/CNB_Baiano_2018_Split_2.png/revision/latest?cb=20180619011950";
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/5/59/CNB_Baiano_2018_Split_2.png";
         }
         if (playerInput.value === "Minerva") {
-            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/f6/RNS_Minerva_2022_Split_2.png/revision/latest?cb=20220702202235";
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/f6/RNS_Minerva_2022_Split_2.png";
         }
         if (playerInput.value === "takeshi") {
-            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/b6/ONE_takeshi_2019_Split_2.png/revision/latest?cb=20190526025413";
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/b6/ONE_takeshi_2019_Split_2.png";
         }
         if (playerInput.value === "Revolta") {
-            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/7/7a/ITZ_Revolta_2021_Split_1.png/revision/latest?cb=20210324142626";
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/7/7a/ITZ_Revolta_2021_Split_1.png";
         }
 
         imageDiv.innerHTML = `<div class="kda" id="${playerId}-kda"></div><img class="player-img" src="${imgUrl}" alt="${playerInput.value}" onerror="this.src='${placeholderUrl}'; this.onerror=null;"><div class="lane" id="${playerId}-lane" style="display: none;"></div>`;
@@ -253,8 +253,47 @@ function generatePlayerGamesLink(players1, lanes1, players2 = [], lanes2 = [], c
 function gerarChampionSection(playerId, playerName, filteredData, otherPlayerName = null) {
     if (!playerName) return '';
     const cleanName = getCleanPlayerName(playerName);
-    const imgUrl = `https://dpm.lol/esport/players/${cleanName}.webp`;
+    let imgUrl = `https://dpm.lol/esport/players/${cleanName}.webp`;
     const placeholderUrl = `https://dpm.lol/esport/players/NoPicture.webp`;
+    
+    // Exceções para imagens específicas de jogadores
+    if (playerName === "xPeke") {
+        imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/c/c0/OG_xPeke_2016_Summer.png";
+    }
+    if (playerName === "Kami") {
+        imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/82/PNG_Kami_2020_Split_1.png";
+    }
+    if (playerName === "4LaN") {
+        imgUrl = "https://img.freepik.com/fotos-gratis/vista-frontal-da-mao-mostrando-a-palma_23-2148775895.jpg?semt=ais_hybrid&w=740";
+    }
+    if (playerName === "element") {
+        imgUrl = "https://media.tenor.com/_3HkBReYdCAAAAAj/malphite-laugh.gif";
+    }
+    if (playerName === "Mylon") {
+        imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/4/4f/PaiN_Mylon_2016_Summer.png";
+    }
+    if (playerName === "Lep") {
+        imgUrl = "https://i.makeagif.com/media/2-05-2021/fog5cD.gif";
+    }
+    if (playerName === "Klaus") {
+        imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/3/3a/VK_Klaus_2020_Split_1.png";
+    }
+    if (playerName === "brTT") {
+        imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/4/42/LOS_brTT_2024_Split_2_player.png";
+    }
+    if (playerName === "Baiano") {
+        imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/5/59/CNB_Baiano_2018_Split_2.png";
+    }
+    if (playerName === "Minerva") {
+        imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/f6/RNS_Minerva_2022_Split_2.png";
+    }
+    if (playerName === "takeshi") {
+        imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/b6/ONE_takeshi_2019_Split_2.png";
+    }
+    if (playerName === "Revolta") {
+        imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/7/7a/ITZ_Revolta_2021_Split_1.png";
+    }
+
     const topChampions = getTopChampions(playerName, filteredData);
     
     // Gerar título sem link
@@ -292,10 +331,11 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
         const cleanChampName = getCleanChampionName(champ.name);
         const champImgUrl = `https://gol.gg/_img/champions_icon/${cleanChampName}.png`;
         const champPlaceholderUrl = `https://media.tenor.com/_aAExG9FQDEAAAAj/league-of-legends-riot-games.gif`;
+        const gamesLink = generatePlayerGamesLink([playerName], [], otherPlayerName ? [otherPlayerName] : [], [], champ.name);
         content += `
             <div class="champion">
                 <div class="winrate">${champ.winrate}%</div>
-                <img src="${champImgUrl}" alt="${champ.name}" onerror="this.src='${champPlaceholderUrl}'; this.onerror=null;">
+                <a href="${gamesLink}" target="_blank"><img src="${champImgUrl}" alt="${champ.name}" onerror="this.src='${champPlaceholderUrl}'; this.onerror=null;"></a>
                 <div class="games">${champ.games} jogos</div>
             </div>
         `;
@@ -354,7 +394,7 @@ function calcularMedias(dados, isTeam2 = false) {
         Vitórias: vitorias,
         'Vitórias (%)': winRate,
         KDA: kda,
-        'Mais Kills que Oponente (%)': killsVsOpponent,
+        'Mais Kills que o oponente (%)': killsVsOpponent,
         'Participação de Kills (%)': avgKPC,
         'Dano/Gold': avgDPG,
         'CS/minuto': avgCSPM,
@@ -422,9 +462,9 @@ function gerarTabela(medias1, medias2, killStats1, killStats2, deathStats1, deat
     if (selectedPlayers2.length > 0) tableContent += `<td>${deathStats2.percentAbove}%</td>`;
     tableContent += '</tr>';
 
-    tableContent += `<tr><td>Mais Kills que Oponente de Lane</td>`;
-    if (selectedPlayers1.length > 0) tableContent += `<td>${medias1['Mais Kills que Oponente (%)']}%</td>`;
-    if (selectedPlayers2.length > 0) tableContent += `<td>${medias2['Mais Kills que Oponente (%)']}%</td>`;
+    tableContent += `<tr><td>Mais Kills que o oponente de Lane</td>`;
+    if (selectedPlayers1.length > 0) tableContent += `<td>${medias1['Mais Kills que o oponente (%)']}%</td>`;
+    if (selectedPlayers2.length > 0) tableContent += `<td>${medias2['Mais Kills que o oponente (%)']}%</td>`;
     tableContent += '</tr>';
 
     tableContent += `<tr><td>Participação de Kills / Jogo</td>`;
@@ -569,7 +609,7 @@ function generateStats() {
         Vitórias: 0,
         'Vitórias (%)': 0,
         KDA: 0,
-        'Mais Kills que Oponente (%)': 0,
+        'Mais Kills que o oponente (%)': 0,
         'Participação de Kills (%)': 0,
         'Dano/Gold': 0,
         'CS/minuto': 0,
@@ -580,7 +620,7 @@ function generateStats() {
         Vitórias: 0,
         'Vitórias (%)': 0,
         KDA: 0,
-        'Mais Kills que Oponente (%)': 0,
+        'Mais Kills que o oponente (%)': 0,
         'Participação de Kills (%)': 0,
         'Dano/Gold': 0,
         'CS/minuto': 0,
@@ -669,7 +709,7 @@ function confrontoDireto() {
         Vitórias: 0,
         'Vitórias (%)': 0,
         KDA: 0,
-        'Mais Kills que Oponente (%)': 0,
+        'Mais Kills que o oponente (%)': 0,
         'Participação de Kills (%)': 0,
         'Dano/Gold': 0,
         'CS/minuto': 0,
@@ -680,7 +720,7 @@ function confrontoDireto() {
         Vitórias: 0,
         'Vitórias (%)': 0,
         KDA: 0,
-        'Mais Kills que Oponente (%)': 0,
+        'Mais Kills que o oponente (%)': 0,
         'Participação de Kills (%)': 0,
         'Dano/Gold': 0,
         'CS/minuto': 0,

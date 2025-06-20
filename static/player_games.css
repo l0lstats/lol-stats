@@ -18,13 +18,19 @@ body {
     color: #d9d9d9;
 }
 
-/* Cabeçalho superior */
-#player-info {
+/* Estilização do cabeçalho */
+header {
     width: 100%;
     padding: 20px;
     background-color: #000000;
     color: white;
+    text-align: center;
     margin-bottom: 10px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 24px;
 }
 
 /* Contêiner do título e botão */
@@ -35,6 +41,7 @@ body {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 10px 20px;
 }
 
 .title-wrapper {
@@ -45,22 +52,24 @@ body {
 .title-wrapper h2 {
     margin: 0;
     display: inline-block;
+    color: #e0e0e0;
+    font-size: 18px;
 }
 
 /* Botão de download */
 .download-btn {
-    padding: 8px 16px;
-    background-color: #007bff;
+    background-color: #000000;
     color: white;
     border: none;
+    padding: 10px 20px;
+    font-size: 16px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
     transition: background-color 0.3s;
 }
 
 .download-btn:hover {
-    background-color: #0056b3;
+    background-color: #5a5a5a;
 }
 
 .download-btn:focus {
@@ -123,6 +132,40 @@ tr:nth-child(even) {
     background-color: #2e2e2e;
 }
 
+/* Estilização do loader */
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loader-gif {
+    width: 170px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.loader-text {
+    color: #ffffff;
+    font-size: 18px;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: -30px;
+}
+
 /* Responsividade */
 @media (max-width: 600px) {
     th, td {
@@ -148,5 +191,9 @@ tr:nth-child(even) {
 
     .table-container {
         max-height: calc(100vh - 140px);
+    }
+
+    header h1 {
+        font-size: 20px;
     }
 }

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camp Stats</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link rel="stylesheet" href="camp_stats.css">
+    <style>
+        /* Estilos inline opcionais para ajustes rápidos */
+    </style>
+</head>
+<body>
+    <div class="filters">
+        <div class="filter-group">
+            <select id="year-filter"></select>
+            <select id="league-filter">
+                <option value="LCK" selected>LCK</option>
+            </select>
+        </div>
+        <div id="league-image"></div>
+        <div class="filter-group">
+            <select id="split-filter"></select>
+            <select id="side-filter">
+                <option value="">Todos os Lados</option>
+                <option value="Blue">Blue</option>
+                <option value="Red">Red</option>
+            </select>
+        </div>
+    </div>
+    <div id="camp-stats-table"></div>
+    <script src="camp_stats.js"></script>
+</body>
+</html>

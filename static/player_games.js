@@ -141,12 +141,12 @@ function filterGames() {
         const h2 = document.createElement('h2');
         let titleText = '';
         if (players1.length > 0 || players2.length > 0) {
-            if (confrontoDireto) {
-                const team1Text = players1.length > 0 ? players1.join(' & ') : '';
-                const team2Text = players2.length > 0 ? players2.join(' & ') : '';
-                titleText = team1Text && team2Text ? `${team1Text} vs ${team2Text}` : team1Text || team2Text;
-            } else {
-                titleText = [...players1, ...players2].join(' & ');
+            if (confrontoDireto && players1.length > 0 && players2.length > 0) {
+                titleText = `${players1[0]} vs ${players2[0]}`;
+            } else if (players1.length > 0) {
+                titleText = players1[0]; // Usar apenas o primeiro jogador de players1
+            } else if (players2.length > 0) {
+                titleText = players2[0]; // Usar apenas o primeiro jogador de players2
             }
             if (champion !== '') titleText += ` (${champion})`;
         } else {
@@ -248,12 +248,12 @@ function downloadCSV() {
     // Gerar nome do arquivo com base nos filtros
     let fileName = '';
     if (players1.length > 0 || players2.length > 0) {
-        if (confrontoDireto) {
-            const team1Text = players1.length > 0 ? players1.join('_') : '';
-            const team2Text = players2.length > 0 ? players2.join('_') : '';
-            fileName = team1Text && team2Text ? `${team1Text}_vs_${team2Text}` : team1Text || team2Text;
-        } else {
-            fileName = [...players1, ...players2].join('_');
+        if (confrontoDireto && players1.length > 0 && players2.length > 0) {
+            fileName = `${players1[0]}_vs_${players2[0]}`;
+        } else if (players1.length > 0) {
+            fileName = players1[0]; // Usar apenas o primeiro jogador de players1
+        } else if (players2.length > 0) {
+            fileName = players2[0]; // Usar apenas o primeiro jogador de players2
         }
         if (champion !== '') fileName += `_${champion}`;
     } else {
@@ -269,7 +269,7 @@ function downloadCSV() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
+    link.setAttribute('href', url);s
     link.setAttribute('download', fileName);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);

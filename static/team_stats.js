@@ -301,9 +301,9 @@ function calcularMedias(dados) {
         'Jogos': jogos,
         'Vitórias': vitorias,
         'Vitórias (%)': (vitorias / jogos * 100 || 0).toFixed(2),
-        'Primeira Torre': (torres / jogos * 100 || 0).toFixed(2),
-        'Primeiro Dragão': (dragoes / jogos * 100 || 0).toFixed(2),
-        'Primeiro Sangue': (firstBlood / jogos * 100 || 0).toFixed(2)
+        '1ª Torre': (torres / jogos * 100 || 0).toFixed(2),
+        '1º Dragão': (dragoes / jogos * 100 || 0).toFixed(2),
+        '1º Sangue': (firstBlood / jogos * 100 || 0).toFixed(2)
     };
 }
 
@@ -316,9 +316,9 @@ function gerarTabela(statsTime1, statsTime2, mediasTime1, mediasTime2, time1, ti
                 <tr><td>Jogos Disputados</td><td>${mediasTime1.Jogos}</td></tr>
                 <tr><td>Vitórias</td><td>${mediasTime1.Vitórias}</td></tr>
                 <tr><td>Vitórias (%)</td><td>${mediasTime1['Vitórias (%)']}%</td></tr>
-                <tr><td>Primeira Torre</td><td>${mediasTime1['Primeira Torre']}%</td></tr>
-                <tr><td>Primeiro Dragão</td><td>${mediasTime1['Primeiro Dragão']}%</td></tr>
-                <tr><td>Primeiro Sangue</td><td>${mediasTime1['Primeiro Sangue']}%</td></tr>
+                <tr><td>1ª Torre</td><td>${mediasTime1['1ª Torre']}%</td></tr>
+                <tr><td>1º Dragão</td><td>${mediasTime1['1º Dragão']}%</td></tr>
+                <tr><td>1º Sangue</td><td>${mediasTime1['1º Sangue']}%</td></tr>
                 <tr><td>Under ${killLine} Kills</td><td>${statsTime1.killStats.percentBelow}%</td></tr>
                 <tr><td>Over ${killLine} Kills</td><td>${statsTime1.killStats.percentAbove}%</td></tr>
                 <tr><td>Under ${timeLineMin} min</td><td>${statsTime1.timeStats.percentBelow}%</td></tr>
@@ -340,9 +340,9 @@ function gerarTabela(statsTime1, statsTime2, mediasTime1, mediasTime2, time1, ti
                 <tr><td>Jogos Disputados</td><td>${mediasTime1.Jogos}</td><td>${mediasTime2.Jogos}</td></tr>
                 <tr><td>Vitórias</td><td>${mediasTime1.Vitórias}</td><td>${mediasTime2.Vitórias}</td></tr>
                 <tr><td>Vitórias (%)</td><td>${mediasTime1['Vitórias (%)']}%</td><td>${mediasTime2['Vitórias (%)']}%</td></tr>
-                <tr><td>Primeira Torre</td><td>${mediasTime1['Primeira Torre']}%</td><td>${mediasTime2['Primeira Torre']}%</td></tr>
-                <tr><td>Primeiro Dragão</td><td>${mediasTime1['Primeiro Dragão']}%</td><td>${mediasTime2['Primeiro Dragão']}%</td></tr>
-                <tr><td>Primeiro Sangue</td><td>${mediasTime1['Primeiro Sangue']}%</td><td>${mediasTime2['Primeiro Sangue']}%</td></tr>
+                <tr><td>1ª Torre</td><td>${mediasTime1['1ª Torre']}%</td><td>${mediasTime2['1ª Torre']}%</td></tr>
+                <tr><td>1º Dragão</td><td>${mediasTime1['1º Dragão']}%</td><td>${mediasTime2['1º Dragão']}%</td></tr>
+                <tr><td>1º Sangue</td><td>${mediasTime1['1º Sangue']}%</td><td>${mediasTime2['1º Sangue']}%</td></tr>
                 <tr><td>Under ${killLine} Kills</td><td>${statsTime1.killStats.percentBelow}%</td><td>${statsTime2.killStats.percentBelow}%</td></tr>
                 <tr><td>Over ${killLine} Kills</td><td>${statsTime1.killStats.percentAbove}%</td><td>${statsTime2.killStats.percentAbove}%</td></tr>
                 <tr><td>Under ${timeLineMin} min</td><td>${statsTime1.timeStats.percentBelow}%</td><td>${statsTime2.timeStats.percentBelow}%</td></tr>
@@ -472,9 +472,9 @@ function comparar() {
         'Jogos': 0,
         'Vitórias': 0,
         'Vitórias (%)': 0,
-        'Primeira Torre': 0,
-        'Primeiro Dragão': 0,
-        'Primeiro Sangue': 0
+        '1ª Torre': 0,
+        '1º Dragão': 0,
+        '1º Sangue': 0
     };
 
     const timeLineMin = parseInt(document.getElementById('time-line').value);
