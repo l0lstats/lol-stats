@@ -167,7 +167,7 @@ function populateChampions(playerId, playerName, filteredData) {
     });
 }
 
-function updateChampionImage(champId, playerName, filteredData) {
+function updateChampionImage(champId, playerName, filteredData, otherPlayerName = null) {
     const champInput = document.getElementById(champId);
     const imageDiv = document.getElementById(`${champId}-image`);
     if (champInput.value) {
@@ -179,25 +179,20 @@ function updateChampionImage(champId, playerName, filteredData) {
             const games = filteredChampData.length;
             const wins = filteredChampData.reduce((sum, row) => sum + (parseInt(row.result) === 1 ? 1 : 0), 0);
             const winrate = ((wins / games) * 100).toFixed(2);
-            const yearFilter = document.getElementById('year-filter').value;
-            const leagueFilter = document.getElementById('league-filter').value;
-            const urlParams = new URLSearchParams();
-            urlParams.append('player1_1', encodeURIComponent(playerName));
-            if (yearFilter) urlParams.append('year', yearFilter);
-            if (leagueFilter) urlParams.append('league', leagueFilter);
-            if (isConfrontoDireto) {
-                const otherPlayer = champId === 'champ-player1_1' ? document.getElementById('player2_1').value : document.getElementById('player1_1').value;
-                if (otherPlayer) {
-                    urlParams.append('player2_1', encodeURIComponent(otherPlayer));
-                    urlParams.append('confrontoDireto', 'true');
-                }
-            }
-            urlParams.append('champion', encodeURIComponent(champInput.value));
-            const gamesLink = `player_games.html?${urlParams.toString()}`;
+
+            // Gerar o link usando generatePlayerGamesLink
+            const gamesLink = generatePlayerGamesLink(
+                [playerName],
+                [],
+                otherPlayerName ? [otherPlayerName] : [],
+                [],
+                champInput.value
+            );
+
             imageDiv.innerHTML = `
                 <div class="champion-stats">
                     <a href="${gamesLink}" target="_blank" class="games-link">Partidas</a>
-                    <div class="winrate">${winrate}%</div>
+                    <div class="winrate" style="color: ${getWinrateColor(winrate)}">${winrate}%</div>
                     <img src="${imgUrl}" alt="${champInput.value}" onerror="this.src='${placeholderUrl}'; this.onerror=null;">
                     <div class="games">${games} jogos</div>
                 </div>
@@ -209,7 +204,6 @@ function updateChampionImage(champId, playerName, filteredData) {
         imageDiv.innerHTML = '';
     }
 }
-
 function getTopChampions(playerName, filteredData) {
     const championCounts = {};
     filteredData.filter(row => row.playername === playerName).forEach(row => {
@@ -234,13 +228,17 @@ function generatePlayerGamesLink(players1, lanes1, players2 = [], lanes2 = [], c
     if (players1[0]) {
         urlParams.append('player1_1', encodeURIComponent(players1[0]));
     }
-    if (players2[0]) {
+    if (players2.length > 0 && players2[0]) {
         urlParams.append('player2_1', encodeURIComponent(players2[0]));
     }
     const year = document.getElementById('year-filter').value;
-    if (year) urlParams.append('year', year);
+    if (year) {
+        urlParams.append('year', year);
+    }
     const league = document.getElementById('league-filter').value;
-    if (league) urlParams.append('league', league);
+    if (league) {
+        urlParams.append('league', league);
+    }
     if (isConfrontoDireto && players2.length > 0) {
         urlParams.append('confrontoDireto', 'true');
     }
@@ -249,13 +247,12 @@ function generatePlayerGamesLink(players1, lanes1, players2 = [], lanes2 = [], c
     }
     return `player_games.html?${urlParams.toString()}`;
 }
-
 function gerarChampionSection(playerId, playerName, filteredData, otherPlayerName = null) {
     if (!playerName) return '';
     const cleanName = getCleanPlayerName(playerName);
     let imgUrl = `https://dpm.lol/esport/players/${cleanName}.webp`;
     const placeholderUrl = `https://dpm.lol/esport/players/NoPicture.webp`;
-    
+
     // Exceções para imagens específicas de jogadores
     if (playerName === "xPeke") {
         imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/c/c0/OG_xPeke_2016_Summer.png";
@@ -295,13 +292,13 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
     }
 
     const topChampions = getTopChampions(playerName, filteredData);
-    
+
     // Gerar título sem link
     const selectedPlayers1 = playerName ? [{ name: playerName, lane: getPlayerLane(playerName, filteredData) }] : [];
     const selectedPlayers2 = otherPlayerName ? [{ name: otherPlayerName, lane: getPlayerLane(otherPlayerName, df) }] : [];
     const yearFilter = document.getElementById('year-filter').value;
     const leagueFilter = document.getElementById('league-filter').value;
-    
+
     let titleText = '';
     if (isConfrontoDireto && selectedPlayers1.length > 0 && selectedPlayers2.length > 0) {
         titleText = `${selectedPlayers1[0].name} vs ${selectedPlayers2[0].name}`;
@@ -314,7 +311,7 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
     if (filters.length > 0) {
         titleText += ` (${filters.join(', ')})`;
     }
-    
+
     let content = `
         <div class="champion-section">
             <h3>${titleText}</h3>
@@ -334,7 +331,7 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
         const gamesLink = generatePlayerGamesLink([playerName], [], otherPlayerName ? [otherPlayerName] : [], [], champ.name);
         content += `
             <div class="champion">
-                <div class="winrate">${champ.winrate}%</div>
+                <div class="winrate" style="color: ${getWinrateColor(champ.winrate)}">${champ.winrate}%</div>
                 <a href="${gamesLink}" target="_blank"><img src="${champImgUrl}" alt="${champ.name}" onerror="this.src='${champPlaceholderUrl}'; this.onerror=null;"></a>
                 <div class="games">${champ.games} jogos</div>
             </div>
@@ -351,14 +348,29 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
                 let currentFilteredData = df;
                 const yearFilter = document.getElementById('year-filter').value;
                 const leagueFilter = document.getElementById('league-filter').value;
+
+                // Aplicar filtros de ano e liga
                 if (yearFilter) {
                     currentFilteredData = currentFilteredData.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
                 }
                 if (leagueFilter) {
                     currentFilteredData = currentFilteredData.filter(row => row.league === leagueFilter);
                 }
+
+                // Filtrar pelo jogador
                 currentFilteredData = currentFilteredData.filter(row => row.playername === playerName);
-                updateChampionImage(`champ-${playerId}`, playerName, currentFilteredData);
+
+                // Aplicar filtro de confronto direto, se aplicável
+                if (isConfrontoDireto && otherPlayerName) {
+                    const playerLane = getPlayerLane(playerName, df);
+                    const otherPlayerLane = getPlayerLane(otherPlayerName, df);
+                    const adversaCol = `adversa_player_${otherPlayerLane}`;
+                    currentFilteredData = currentFilteredData.filter(row => 
+                        row.position.toLowerCase() === playerLane && row[adversaCol] === otherPlayerName
+                    );
+                }
+
+                updateChampionImage(`champ-${playerId}`, playerName, currentFilteredData, otherPlayerName);
             });
         }
     }, 0);
@@ -497,18 +509,36 @@ function gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilte
         h2.textContent = 'Estatísticas de Jogadores';
     } else {
         if (isConfrontoDireto && selectedPlayers1.length > 0 && selectedPlayers2.length > 0) {
-            const link = document.createElement('a');
-            link.href = generatePlayerGamesLink(
+            // Link para a perspectiva do primeiro jogador (ex.: Faker vs Canyon)
+            const link1 = document.createElement('a');
+            link1.href = generatePlayerGamesLink(
                 selectedPlayers1.map(p => p.name),
                 [],
                 selectedPlayers2.map(p => p.name),
                 []
             );
-            link.target = '_blank';
-            link.textContent = `${selectedPlayers1[0].name} vs ${selectedPlayers2[0].name}`;
-            link.className = 'confronto-link';
-            h2.appendChild(link);
+            link1.target = '_blank';
+            link1.textContent = selectedPlayers1[0].name;
+            link1.className = 'player-link';
+            h2.appendChild(link1);
+
+            // Adicionar " vs "
+            h2.appendChild(document.createTextNode(' vs '));
+
+            // Link para a perspectiva do segundo jogador (ex.: Canyon vs Faker)
+            const link2 = document.createElement('a');
+            link2.href = generatePlayerGamesLink(
+                selectedPlayers2.map(p => p.name),
+                [],
+                selectedPlayers1.map(p => p.name),
+                []
+            );
+            link2.target = '_blank';
+            link2.textContent = selectedPlayers2[0].name;
+            link2.className = 'player-link';
+            h2.appendChild(link2);
         } else {
+            // Modo Stats Individual
             if (selectedPlayers1.length > 0) {
                 const link1 = document.createElement('a');
                 link1.href = generatePlayerGamesLink(
@@ -761,4 +791,146 @@ function confrontoDireto() {
     }
 }
 
+function comparar() {
+    const player1 = document.getElementById('player1_1').value;
+    const player2 = document.getElementById('player2_1').value;
+    const yearFilter = document.getElementById('year-filter').value;
+    const leagueFilter = document.getElementById('league-filter').value;
+    const killLine = parseFloat(document.getElementById('kill-line').value);
+    const deathLine = parseFloat(document.getElementById('death-line').value);
+
+    const selectedPlayers1 = player1 ? [{ name: player1, lane: null }] : [];
+    const selectedPlayers2 = player2 ? [{ name: player2, lane: null }] : [];
+
+    if (selectedPlayers1.length === 0 && selectedPlayers2.length === 0) {
+        document.getElementById('player-stats-table').innerHTML = '';
+        document.getElementById('champion-stats').innerHTML = '';
+        return;
+    }
+
+    let filteredData1 = df;
+    let filteredData2 = df;
+
+    if (yearFilter) {
+        filteredData1 = filteredData1.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
+        filteredData2 = filteredData2.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
+    }
+
+    if (leagueFilter) {
+        filteredData1 = filteredData1.filter(row => row.league === leagueFilter);
+        filteredData2 = filteredData2.filter(row => row.league === leagueFilter);
+    }
+
+    if (selectedPlayers1.length > 0) {
+        filteredData1 = filteredData1.filter(row => row.playername === player1);
+        selectedPlayers1[0].lane = getPlayerLane(player1, filteredData1);
+    }
+    if (selectedPlayers2.length > 0) {
+        filteredData2 = filteredData2.filter(row => row.playername === player2);
+        selectedPlayers2[0].lane = getPlayerLane(player2, filteredData2);
+    }
+
+    const medias1 = filteredData1.length > 0 ? calcularMedias(filteredData1, false) : {
+        Jogos: 0,
+        Vitórias: 0,
+        'Vitórias (%)': 0,
+        KDA: 0,
+        'Mais Kills que o oponente (%)': 0,
+        'Participação de Kills (%)': 0,
+        'Dano/Gold': 0,
+        'CS/minuto': 0,
+        'Wards (Usadas+Destruídas)': 0
+    };
+    const medias2 = filteredData2.length > 0 ? calcularMedias(filteredData2, false) : {
+        Jogos: 0,
+        Vitórias: 0,
+        'Vitórias (%)': 0,
+        KDA: 0,
+        'Mais Kills que o oponente (%)': 0,
+        'Participação de Kills (%)': 0,
+        'Dano/Gold': 0,
+        'CS/minuto': 0,
+        'Wards (Usadas+Destruídas)': 0
+    };
+    const killStats1 = filteredData1.length > 0 ? calcularKillStats(filteredData1, killLine) : { percentBelow: 0, percentAbove: 0 };
+    const killStats2 = filteredData2.length > 0 ? calcularKillStats(filteredData2, killLine) : { percentBelow: 0, percentAbove: 0 };
+    const deathStats1 = filteredData1.length > 0 ? calcularDeathStats(filteredData1, deathLine) : { percentBelow: 0, percentAbove: 0 };
+    const deathStats2 = filteredData2.length > 0 ? calcularDeathStats(filteredData2, deathLine) : { percentBelow: 0, percentAbove: 0 };
+
+    const resultado = document.getElementById('player-stats-table');
+    resultado.innerHTML = '';
+    const h2 = gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilter, false);
+    resultado.appendChild(h2);
+    const tableContent = gerarTabela(medias1, medias2, killStats1, killStats2, deathStats1, deathStats2, selectedPlayers1, selectedPlayers2, killLine, deathLine);
+    resultado.insertAdjacentHTML('beforeend', tableContent);
+
+    if (selectedPlayers1.length > 0) {
+        const kdaElement1 = document.getElementById('player1_1-kda');
+        kdaElement1.textContent = `KDA ${medias1.KDA}`;
+        kdaElement1.style.color = getKDAColor(medias1.KDA);
+        updateLaneDisplay('player1_1', selectedPlayers1[0].lane);
+    }
+    if (selectedPlayers2.length > 0) {
+        const kdaElement2 = document.getElementById('player2_1-kda');
+        kdaElement2.textContent = `KDA ${medias2.KDA}`;
+        kdaElement2.style.color = getKDAColor(medias2.KDA);
+        updateLaneDisplay('player2_1', selectedPlayers2[0].lane);
+    }
+
+    const championStats = document.getElementById('champion-stats');
+    championStats.innerHTML = '';
+    if (selectedPlayers1.length > 0) {
+        championStats.insertAdjacentHTML('beforeend', gerarChampionSection('player1_1', player1, filteredData1, null));
+    }
+    if (selectedPlayers2.length > 0) {
+        championStats.insertAdjacentHTML('beforeend', gerarChampionSection('player2_1', player2, filteredData2, null));
+    }
+}
 window.onload = loadCSV;
+function updateChampionImage(champId, playerName, filteredData, otherPlayerName = null) {
+    const champInput = document.getElementById(champId);
+    const imageDiv = document.getElementById(`${champId}-image`);
+    if (champInput.value) {
+        const filteredChampData = filteredData.filter(row => row.playername === playerName && row.champion === champInput.value);
+        if (filteredChampData.length > 0) {
+            const cleanName = getCleanChampionName(champInput.value);
+            const imgUrl = `https://gol.gg/_img/champions_icon/${cleanName}.png`;
+            const placeholderUrl = `https://media.tenor.com/_aAExG9FQDEAAAAj/league-of-legends-riot-games.gif`;
+            const games = filteredChampData.length;
+            const wins = filteredChampData.reduce((sum, row) => sum + (parseInt(row.result) === 1 ? 1 : 0), 0);
+            const winrate = ((wins / games) * 100).toFixed(2);
+
+            // Gerar o link usando generatePlayerGamesLink
+            const gamesLink = generatePlayerGamesLink(
+                [playerName],
+                [],
+                otherPlayerName ? [otherPlayerName] : [],
+                [],
+                champInput.value
+            );
+
+            imageDiv.innerHTML = `
+                <div class="champion-stats">
+                    <a href="${gamesLink}" target="_blank" class="games-link">Partidas</a>
+                    <div class="winrate">${winrate}%</div>
+                    <img src="${imgUrl}" alt="${champInput.value}" onerror="this.src='${placeholderUrl}'; this.onerror=null;">
+                    <div class="games">${games} jogos</div>
+                </div>
+            `;
+        } else {
+            imageDiv.innerHTML = '';
+        }
+    } else {
+        imageDiv.innerHTML = '';
+    }
+}
+function getWinrateColor(winrate) {
+    const winrateValue = parseFloat(winrate);
+    if (winrateValue < 40) {
+        return '#ff0000'; // Vermelho
+    } else if (winrateValue >= 40 && winrateValue < 55) {
+        return '#ffa500'; // Laranja
+    } else {
+        return '#00ff00'; // Verde
+    }
+}

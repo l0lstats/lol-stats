@@ -137,8 +137,8 @@ body {
 }
 
 .image-group .kda {
-    font-size: 14px;
-    margin-bottom: 5px;
+    font-size: 12px;
+    margin-bottom: 4px;
 }
 
 .image-group .lane {
@@ -149,10 +149,11 @@ body {
 
 .image-group img {
     width: 80px;
-    height: auto;
+    height: 80px;
     display: block;
     object-fit: cover;
     border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 /* Estilização da tabela */
@@ -269,6 +270,7 @@ h2 {
     display: block;
     object-fit: cover;
     border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 .champion-selection .champion-stats {
@@ -284,7 +286,7 @@ h2 {
 
 .champion-selection .winrate {
     font-size: 12px;
-    color: #00ff00;
+    
     margin-bottom: 5px;
 }
 
@@ -314,7 +316,7 @@ h2 {
 
 .top-champions .winrate {
     font-size: 12px;
-    color: #00ff00;
+    
     margin-bottom: 5px;
 }
 

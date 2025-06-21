@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Partidas de Jogadores</title>
     <link rel="stylesheet" href="player_games.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 <body>
-    <div id="loader" style="display: none;">Carregando...</div>
     <header>
-        <h1>Partidas de Jogadores</h1>
+        <h1 id="header-title">Carregando...</h1>
+        <button class="download-btn" onclick="downloadCSV()">Download</button>
     </header>
-    <main>
+    <div class="table-container">
         <div id="games-table"></div>
-    </main>
+    </div>
     <script src="player_games.js"></script>
 </body>
 </html>

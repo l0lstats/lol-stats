@@ -6,7 +6,6 @@ function loadCSV() {
         header: true,
         complete: function(results) {
             df = results.data;
-            // Filtrar linhas com dados válidos
             df = df.filter(row => row.playername && row.playername.trim() !== '');
             console.log('CSV carregado, primeiros 5:', df.slice(0, 5));
             filterGames();
@@ -25,7 +24,6 @@ function getQueryParams() {
     const players2 = [];
     let i = 1;
 
-    // Extrair players1
     while (params.has(`player1_${i}`)) {
         players1.push(decodeURIComponent(params.get(`player1_${i}`)));
         i++;
@@ -47,6 +45,17 @@ function getQueryParams() {
     };
 }
 
+function getPlayerLane(playerName, data) {
+    const positions = data.filter(row => row.playername && row.position && row.playername === playerName)
+        .map(row => row.position.toLowerCase());
+    if (positions.length === 0) return '';
+    const positionCount = {};
+    positions.forEach(pos => {
+        positionCount[pos] = (positionCount[pos] || 0) + 1;
+    });
+    return Object.keys(positionCount).reduce((a, b) => positionCount[a] > positionCount[b] ? a : b, '');
+}
+
 function filterGames() {
     if (!df) {
         console.error('Dados não carregados!');
@@ -57,7 +66,7 @@ function filterGames() {
 
     let filteredData = df;
 
-    // Aplicar filtros
+    // Aplicar filtros de ano e liga antes da filtragem por jogadores
     if (year !== '') {
         filteredData = filteredData.filter(row => {
             if (!row.date) return false;
@@ -75,21 +84,46 @@ function filterGames() {
         filteredData = filteredData.filter(row => row.champion === champion);
     }
 
+    // Determinar lanes dos jogadores
+    const lane1 = players1.length > 0 ? getPlayerLane(players1[0], df) : '';
+    const lane2 = players2.length > 0 ? getPlayerLane(players2[0], df) : '';
+
     // Filtrar por jogadores
-    filteredData = filteredData.filter(row => {
-        let effectivePlayers1 = confrontoDireto ? players1 : [...players1, ...players2];
-        let effectivePlayers2 = confrontoDireto ? players2 : [];
+    if (confrontoDireto && players1.length > 0 && players2.length > 0) {
+        // Filtrar jogos onde player1 (ex.: Faker) está em playername e player2 (ex.: Canyon) está em adversa_player_{lane2}
+        filteredData = filteredData.filter(row => {
+            const adversaCol = `adversa_player_${lane2}`;
+            return row.playername === players1[0] && row[adversaCol] === players2[0];
+        });
+    } else {
+        // Stats Individual: filtrar apenas por jogadores em playername
+        const effectivePlayers = [...players1, ...players2];
+        filteredData = filteredData.filter(row => effectivePlayers.includes(row.playername));
+    }
 
-        const playerMatch = effectivePlayers1.includes(row.playername);
-
-        if (confrontoDireto && effectivePlayers2.length > 0) {
-            const lane = row.position?.toLowerCase();
-            const adversaCol = `adversa_player_${lane}`;
-            return playerMatch && effectivePlayers2.includes(row[adversaCol]);
+    // Gerar título dinâmico
+    let titleText = '';
+    if (players1.length > 0 || players2.length > 0) {
+        if (confrontoDireto && players1.length > 0 && players2.length > 0) {
+            titleText = `${players1[0]} vs ${players2[0]}`;
+        } else if (players1.length > 0) {
+            titleText = players1[0];
+        } else if (players2.length > 0) {
+            titleText = players2[0];
         }
+        if (champion !== '') titleText += ` (${champion})`;
+    } else {
+        titleText = 'Jogos Selecionados';
+    }
 
-        return playerMatch;
-    });
+    if (year !== '') titleText += ` (${year})`;
+    if (leagueFilter !== '') titleText += ` (${leagueFilter})`;
+
+    // Atualizar título no header
+    const headerTitle = document.getElementById('header-title');
+    if (headerTitle) {
+        headerTitle.textContent = titleText;
+    }
 
     // Gerar tabela
     let tableContent = '<table>';
@@ -104,15 +138,17 @@ function filterGames() {
     tableContent += '<th>Kills</th>';
     tableContent += '<th>Deaths</th>';
     tableContent += '<th>Assists</th>';
-    tableContent += '<th>Jogador Adversário</th>';
+    tableContent += '<th>Adversário</th>';
     tableContent += '<th>Time Adversário</th>';
     tableContent += '</tr></thead>';
 
     tableContent += '<tbody>';
 
     filteredData.forEach(row => {
-        const lane = row.position?.toLowerCase();
-        const adversaCol = `adversa_player_${lane}`;
+        const adversaCol = confrontoDireto && players2.length > 0
+            ? (row.playername === players1[0] ? `adversa_player_${lane2}` : `adversa_player_${lane1}`)
+            : `adversa_player_${row.position?.toLowerCase() || ''}`;
+        
         tableContent += '<tr>';
         tableContent += `<td>${row.date || ''}</td>`;
         tableContent += `<td>${row.league || ''}</td>`;
@@ -132,36 +168,7 @@ function filterGames() {
     tableContent += '</tbody></table>';
 
     const resultado = document.getElementById('games-table');
-    resultado.innerHTML = '';
-
-    // Gerar título e inseri-lo no .title-wrapper
-    const titleWrapper = document.querySelector('.title-wrapper');
-    if (titleWrapper) {
-        titleWrapper.innerHTML = '';
-        const h2 = document.createElement('h2');
-        let titleText = '';
-        if (players1.length > 0 || players2.length > 0) {
-            if (confrontoDireto && players1.length > 0 && players2.length > 0) {
-                titleText = `${players1[0]} vs ${players2[0]}`;
-            } else if (players1.length > 0) {
-                titleText = players1[0]; // Usar apenas o primeiro jogador de players1
-            } else if (players2.length > 0) {
-                titleText = players2[0]; // Usar apenas o primeiro jogador de players2
-            }
-            if (champion !== '') titleText += ` (${champion})`;
-        } else {
-            titleText = 'Jogos Selecionados';
-        }
-
-        if (year !== '') titleText += ` (${year})`;
-        if (leagueFilter !== '') titleText += ` (${leagueFilter})`;
-
-        h2.textContent = titleText;
-        titleWrapper.appendChild(h2);
-    }
-
-    // Inserir tabela
-    resultado.insertAdjacentHTML('beforeend', tableContent);
+    resultado.innerHTML = tableContent;
 }
 
 function downloadCSV() {
@@ -173,7 +180,7 @@ function downloadCSV() {
     const { players1, players2, year, leagueFilter, confrontoDireto, champion } = getQueryParams();
     let filteredData = df;
 
-    // Aplicar os mesmos filtros usados em filterGames
+    // Aplicar filtros de ano e liga antes da filtragem por jogadores
     if (year !== '') {
         filteredData = filteredData.filter(row => {
             if (!row.date) return false;
@@ -191,20 +198,20 @@ function downloadCSV() {
         filteredData = filteredData.filter(row => row.champion === champion);
     }
 
-    filteredData = filteredData.filter(row => {
-        let effectivePlayers1 = confrontoDireto ? players1 : [...players1, ...players2];
-        let effectivePlayers2 = confrontoDireto ? players2 : [];
+    // Determinar lanes dos jogadores
+    const lane1 = players1.length > 0 ? getPlayerLane(players1[0], df) : '';
+    const lane2 = players2.length > 0 ? getPlayerLane(players2[0], df) : '';
 
-        const playerMatch = effectivePlayers1.includes(row.playername);
-
-        if (confrontoDireto && effectivePlayers2.length > 0) {
-            const lane = row.position?.toLowerCase();
-            const adversaCol = `adversa_player_${lane}`;
-            return playerMatch && effectivePlayers2.includes(row[adversaCol]);
-        }
-
-        return playerMatch;
-    });
+    // Filtrar por jogadores
+    if (confrontoDireto && players1.length > 0 && players2.length > 0) {
+        filteredData = filteredData.filter(row => {
+            const adversaCol = `adversa_player_${lane2}`;
+            return row.playername === players1[0] && row[adversaCol] === players2[0];
+        });
+    } else {
+        const effectivePlayers = [...players1, ...players2];
+        filteredData = filteredData.filter(row => effectivePlayers.includes(row.playername));
+    }
 
     // Definir os nomes das colunas conforme exibidos na tabela
     const columnOrder = [
@@ -218,17 +225,18 @@ function downloadCSV() {
         { display: 'Kills', original: 'kills' },
         { display: 'Deaths', original: 'deaths' },
         { display: 'Assists', original: 'assists' },
-        { display: 'Jogador Adversário', original: null },
+        { display: 'Adversário', original: null },
         { display: 'Time Adversário', original: 'adversa_team' }
     ];
 
     // Transformar dados para corresponder aos nomes e ordem das colunas da tabela
     const transformedData = filteredData.map(row => {
         const newRow = {};
-        const lane = row.position?.toLowerCase();
-        const adversaCol = `adversa_player_${lane}`;
+        const adversaCol = confrontoDireto && players2.length > 0
+            ? (row.playername === players1[0] ? `adversa_player_${lane2}` : `adversa_player_${lane1}`)
+            : `adversa_player_${row.position?.toLowerCase() || ''}`;
         columnOrder.forEach(col => {
-            if (col.display === 'Jogador Adversário') {
+            if (col.display === 'Adversário') {
                 newRow[col.display] = row[adversaCol] || '';
             } else {
                 newRow[col.display] = row[col.original] || '';
@@ -251,13 +259,13 @@ function downloadCSV() {
         if (confrontoDireto && players1.length > 0 && players2.length > 0) {
             fileName = `${players1[0]}_vs_${players2[0]}`;
         } else if (players1.length > 0) {
-            fileName = players1[0]; // Usar apenas o primeiro jogador de players1
+            fileName = players1[0];
         } else if (players2.length > 0) {
-            fileName = players2[0]; // Usar apenas o primeiro jogador de players2
+            fileName = players2[0];
         }
         if (champion !== '') fileName += `_${champion}`;
     } else {
-        fileName = 'Jogos_Selecionados';
+        fileName = 'Jogos Selecionados';
     }
 
     if (year !== '') fileName += `_${year}`;
@@ -269,7 +277,7 @@ function downloadCSV() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);s
+    link.setAttribute('href', url);
     link.setAttribute('download', fileName);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);

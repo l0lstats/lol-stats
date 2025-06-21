@@ -44,9 +44,9 @@ function loadCSV() {
 function exportToCSV(filteredData, title) {
     // Definir os cabeçalhos do CSV (em português, como na tabela)
     const headers = [
-        'Data', 'Liga', 'Lado', 'Vitória', 'Adversário', 'Tempo(min)',
-        'Kills', 'Deaths', '1ª Torre', '1º Dragão', '1º Sangue',
-        'Total Dragões', 'Total Barons', 'Total Torres', 'Total Inibidores'
+        'Data', 'Liga', 'Lado','Time','Jogadores', 'Vitória',
+        'Kills', 'Deaths', '1ª Torre', '1º Dragão', '1º Sangue','Adversário', 'Jogadores_adv','Tempo(min)',
+        'Dragões', 'Barons', 'Torres', 'Inibidores'
     ];
 
     // Mapear os dados filtrados para corresponder aos cabeçalhos
@@ -54,14 +54,17 @@ function exportToCSV(filteredData, title) {
         row.date || '-',
         row.league || '-',
         row.side || '-',
+        row.teamname || '-',
+        row.team_players || '-',
         row.result || '-',
-        row.adversa_team || '-',
-        row.gamelength || '-',
         row.kills || '-',
         row.deaths || '-',
         row.firsttower || '-',
         row.firstdragon || '-',
         row.firstblood || '-',
+        row.adversa_team || '-',
+        row.adversa_players || '-',
+        row.gamelength || '-',
         row.totalDragons || '-',
         row.totalBarons || '-',
         row.totalTowers || '-',
@@ -183,10 +186,10 @@ function displayTeamData() {
                     <th>1ª Torre</th>
                     <th>1º Dragão</th>
                     <th>1º Sangue</th>
-                    <th>Total Dragões</th>
-                    <th>Total Barons</th>
-                    <th>Total Torres</th>
-                    <th>Total Inibidores</th>
+                    <th>Dragões</th>
+                    <th>Barons</th>
+                    <th>Torres</th>
+                    <th>Inibidores</th>
                 </tr>
             </thead>
             <tbody>

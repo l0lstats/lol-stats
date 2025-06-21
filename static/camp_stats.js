@@ -99,6 +99,11 @@ function initializeFilters() {
             imageUrl = 'https://dpm.lol/esport/leagues/WORLDS.webp';
         } else if (sanitizedLeague === 'LCKC') {
             imageUrl = 'https://dpm.lol/esport/leagues/LCK_CL.webp';
+        } else if (sanitizedLeague === 'EUM') {
+            imageUrl = 'https://dpm.lol/esport/leagues/EM.webp';
+        }
+         else if (sanitizedLeague === 'CK') {
+            imageUrl = 'https://dpm.lol/esport/leagues/LCK_CL.webp';
         } else if (sanitizedLeague === 'LTA') {
             imageUrl = 'https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/bd/LTA_logo.png';
         } else if (sanitizedLeague === 'OGN') {
