@@ -90,6 +90,7 @@ thead {
     z-index: 2;
 }
 
+
 /* Estilização das células do cabeçalho */
 th {
     color: white;
@@ -98,6 +99,7 @@ th {
     text-align: center;
     white-space: nowrap;
     background-color: #000000;
+    width: 12ch; /* Define largura fixa equivalente a ~12 caracteres */
 }
 
 /* Estilização das células do corpo */
@@ -109,6 +111,7 @@ td {
     white-space: normal;
     color: #e0e0e0;
     font-size: 14px;
+    width: 12ch; /* Define largura fixa equivalente a ~12 caracteres */
 }
 
 /* Linhas alternadas */

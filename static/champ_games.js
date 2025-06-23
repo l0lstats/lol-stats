@@ -116,9 +116,12 @@ function filterGames() {
         return teamMatch && adversaMatch;
     });
 
-    // Filtro por jogos recentes
+    // Ordenar por data em ordem decrescente (jogos mais recentes primeiro)
+    filteredData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Filtro por jogos recentes (limita o número de jogos após a ordenação)
     if (recentGames !== '') {
-        filteredData = filteredData.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
+        filteredData = filteredData.slice(0, parseInt(recentGames));
     }
 
     // Gerar tabela
@@ -135,11 +138,11 @@ function filterGames() {
     tableContent += '<th>Bot</th>';
     tableContent += '<th>Sup</th>';
     tableContent += '<th>Adversário</th>';
-    tableContent += '<th>adv_Top</th>';
-    tableContent += '<th>adv_Jng</th>';
-    tableContent += '<th>adv_Mid</th>';
-    tableContent += '<th>adv_Bot</th>';
-    tableContent += '<th>adv_Sup</th>';
+    tableContent += '<th>Top adv</th>';
+    tableContent += '<th>Jng adv</th>';
+    tableContent += '<th>Mid adv</th>';
+    tableContent += '<th>Bot adv</th>';
+    tableContent += '<th>Sup adv</th>';
     tableContent += '<th>Kills</th>';
     tableContent += '<th>Tempo(min)</th>';
     tableContent += '</tr></thead>';
@@ -259,8 +262,12 @@ function downloadCSV() {
         return teamMatch && adversaMatch;
     });
 
+    // Ordenar por data em ordem decrescente (jogos mais recentes primeiro)
+    filteredData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Filtro por jogos recentes (limita o número de jogos após a ordenação)
     if (recentGames !== '') {
-        filteredData = filteredData.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
+        filteredData = filteredData.slice(0, parseInt(recentGames));
     }
 
     // Definir os nomes das colunas conforme exibidos na tabela
@@ -276,11 +283,11 @@ function downloadCSV() {
         { display: 'Bot', original: 'team_bot' },
         { display: 'Sup', original: 'team_sup' },
         { display: 'Adversário', original: 'adversa_team' },
-        { display: 'adv_Top', original: 'adversa_top' },
-        { display: 'adv_Jng', original: 'adversa_jng' },
-        { display: 'adv_Mid', original: 'adversa_mid' },
-        { display: 'adv_Bot', original: 'adversa_bot' },
-        { display: 'adv_Sup', original: 'adversa_sup' },
+        { display: 'Top adv', original: 'adversa_top' },
+        { display: 'Jng adv', original: 'adversa_jng' },
+        { display: 'Mid adv', original: 'adversa_mid' },
+        { display: 'Bot adv', original: 'adversa_bot' },
+        { display: 'Sup adv', original: 'adversa_sup' },
         { display: 'Kills', original: 'totalKills' },
         { display: 'Tempo(min)', original: 'gamelength' }
     ];
@@ -299,7 +306,7 @@ function downloadCSV() {
         header: true,
         delimiter: ',',
         quotes: true,
-        columns: columnOrder.map(col => col.display) // Definir ordem das colunas
+        columns: columnOrder.map(col => col.display)
     });
 
     // Gerar nome do arquivo com base nos filtros
@@ -322,7 +329,6 @@ function downloadCSV() {
     if (leagueFilter === 'tier1') fileName += `_Tier1`;
     if (recentGames !== '') fileName += `_Ultimos_${recentGames}_jogos`;
 
-    // Substituir caracteres inválidos para nomes de arquivos
     fileName = fileName.replace(/[^a-zA-Z0-9_-]/g, '_') + '.csv';
 
     // Criar blob e iniciar download

@@ -129,6 +129,12 @@ function updatePlayerImage(playerId) {
         if (playerInput.value === "Baiano") {
             imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/5/59/CNB_Baiano_2018_Split_2.png";
         }
+        if (playerInput.value === "Jukes") {
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/87/C9_Jukes_2019_Split_2.png";
+        }
+        if (playerInput.value === "Rakin") {
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/2/25/CNB_Rakin_2018_Spring.png";
+        }
         if (playerInput.value === "Minerva") {
             imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/f6/RNS_Minerva_2022_Split_2.png";
         }
@@ -204,6 +210,7 @@ function updateChampionImage(champId, playerName, filteredData, otherPlayerName 
         imageDiv.innerHTML = '';
     }
 }
+
 function getTopChampions(playerName, filteredData) {
     const championCounts = {};
     filteredData.filter(row => row.playername === playerName).forEach(row => {
@@ -225,11 +232,14 @@ function getTopChampions(playerName, filteredData) {
 
 function generatePlayerGamesLink(players1, lanes1, players2 = [], lanes2 = [], champion = null) {
     const urlParams = new URLSearchParams();
-    if (players1[0]) {
-        urlParams.append('player1_1', encodeURIComponent(players1[0]));
+    const effectivePlayers1 = players1.length > 0 ? players1 : players2;
+    const effectivePlayers2 = players1.length > 0 && players2.length > 0 ? players2 : [];
+
+    if (effectivePlayers1[0]) {
+        urlParams.append('player1_1', encodeURIComponent(effectivePlayers1[0]));
     }
-    if (players2.length > 0 && players2[0]) {
-        urlParams.append('player2_1', encodeURIComponent(players2[0]));
+    if (effectivePlayers2.length > 0 && effectivePlayers2[0]) {
+        urlParams.append('player2_1', encodeURIComponent(effectivePlayers2[0]));
     }
     const year = document.getElementById('year-filter').value;
     if (year) {
@@ -239,7 +249,7 @@ function generatePlayerGamesLink(players1, lanes1, players2 = [], lanes2 = [], c
     if (league) {
         urlParams.append('league', league);
     }
-    if (isConfrontoDireto && players2.length > 0) {
+    if (isConfrontoDireto && effectivePlayers2.length > 0) {
         urlParams.append('confrontoDireto', 'true');
     }
     if (champion) {
@@ -247,6 +257,7 @@ function generatePlayerGamesLink(players1, lanes1, players2 = [], lanes2 = [], c
     }
     return `player_games.html?${urlParams.toString()}`;
 }
+
 function gerarChampionSection(playerId, playerName, filteredData, otherPlayerName = null) {
     if (!playerName) return '';
     const cleanName = getCleanPlayerName(playerName);
@@ -281,6 +292,12 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
     if (playerName === "Baiano") {
         imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/5/59/CNB_Baiano_2018_Split_2.png";
     }
+    if (playerInput.value === "Jukes") {
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/87/C9_Jukes_2019_Split_2.png";
+    }
+    if (playerInput.value === "Rakin") {
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/2/25/CNB_Rakin_2018_Spring.png";
+    }
     if (playerName === "Minerva") {
         imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/f6/RNS_Minerva_2022_Split_2.png";
     }
@@ -293,7 +310,6 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
 
     const topChampions = getTopChampions(playerName, filteredData);
 
-    // Gerar título sem link
     const selectedPlayers1 = playerName ? [{ name: playerName, lane: getPlayerLane(playerName, filteredData) }] : [];
     const selectedPlayers2 = otherPlayerName ? [{ name: otherPlayerName, lane: getPlayerLane(otherPlayerName, df) }] : [];
     const yearFilter = document.getElementById('year-filter').value;
@@ -509,7 +525,6 @@ function gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilte
         h2.textContent = 'Estatísticas de Jogadores';
     } else {
         if (isConfrontoDireto && selectedPlayers1.length > 0 && selectedPlayers2.length > 0) {
-            // Link para a perspectiva do primeiro jogador (ex.: Faker vs Canyon)
             const link1 = document.createElement('a');
             link1.href = generatePlayerGamesLink(
                 selectedPlayers1.map(p => p.name),
@@ -522,10 +537,8 @@ function gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilte
             link1.className = 'player-link';
             h2.appendChild(link1);
 
-            // Adicionar " vs "
             h2.appendChild(document.createTextNode(' vs '));
 
-            // Link para a perspectiva do segundo jogador (ex.: Canyon vs Faker)
             const link2 = document.createElement('a');
             link2.href = generatePlayerGamesLink(
                 selectedPlayers2.map(p => p.name),
@@ -538,11 +551,12 @@ function gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilte
             link2.className = 'player-link';
             h2.appendChild(link2);
         } else {
-            // Modo Stats Individual
             if (selectedPlayers1.length > 0) {
                 const link1 = document.createElement('a');
                 link1.href = generatePlayerGamesLink(
                     selectedPlayers1.map(p => p.name),
+                    [],
+                    [],
                     []
                 );
                 link1.target = '_blank';
@@ -556,9 +570,9 @@ function gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilte
                 }
                 const link2 = document.createElement('a');
                 link2.href = generatePlayerGamesLink(
-                    [],
-                    [],
                     selectedPlayers2.map(p => p.name),
+                    [],
+                    [],
                     []
                 );
                 link2.target = '_blank';
@@ -596,6 +610,17 @@ function getKDAColor(kda) {
     }
 }
 
+function getWinrateColor(winrate) {
+    const winrateValue = parseFloat(winrate);
+    if (winrateValue < 40) {
+        return '#ff0000'; // Vermelho
+    } else if (winrateValue >= 40 && winrateValue < 55) {
+        return '#ffa500'; // Laranja
+    } else {
+        return '#00ff00'; // Verde
+    }
+}
+
 function generateStats() {
     isConfrontoDireto = false;
     const player1 = document.getElementById('player1_1').value;
@@ -608,11 +633,6 @@ function generateStats() {
     const selectedPlayers1 = player1 ? [{ name: player1, lane: null }] : [];
     const selectedPlayers2 = player2 ? [{ name: player2, lane: null }] : [];
 
-    if (selectedPlayers1.length === 0 && selectedPlayers2.length === 0) {
-        document.getElementById('player-stats-table').innerHTML = '';
-        document.getElementById('champion-stats').innerHTML = '';
-        return;
-    }
 
     let filteredData = df;
     if (yearFilter) {
@@ -703,9 +723,20 @@ function confrontoDireto() {
     const selectedPlayers1 = player1 ? [{ name: player1, lane: null }] : [];
     const selectedPlayers2 = player2 ? [{ name: player2, lane: null }] : [];
 
-    if (selectedPlayers1.length === 0 || selectedPlayers2.length === 0) {
-        document.getElementById('player-stats-table').innerHTML = '';
-        document.getElementById('champion-stats').innerHTML = '';
+    if (!player1) {
+        alert('Selecione um segundo jogador para o Confronto Direto!');
+        
+        return;
+    }
+    
+    if (!player2) {
+        alert('Selecione um segundo jogador para o Confronto Direto!');
+        
+        return;
+    }
+    if (player1 === player2) {
+        alert('Selecione jogadores diferentes para o Confronto Direto!');
+        
         return;
     }
 
@@ -803,8 +834,8 @@ function comparar() {
     const selectedPlayers2 = player2 ? [{ name: player2, lane: null }] : [];
 
     if (selectedPlayers1.length === 0 && selectedPlayers2.length === 0) {
-        document.getElementById('player-stats-table').innerHTML = '';
-        document.getElementById('champion-stats').innerHTML = '';
+        alert('Selecione pelo menos um jogador para gerar as estatísticas!');
+      
         return;
     }
 
@@ -886,51 +917,5 @@ function comparar() {
         championStats.insertAdjacentHTML('beforeend', gerarChampionSection('player2_1', player2, filteredData2, null));
     }
 }
+
 window.onload = loadCSV;
-function updateChampionImage(champId, playerName, filteredData, otherPlayerName = null) {
-    const champInput = document.getElementById(champId);
-    const imageDiv = document.getElementById(`${champId}-image`);
-    if (champInput.value) {
-        const filteredChampData = filteredData.filter(row => row.playername === playerName && row.champion === champInput.value);
-        if (filteredChampData.length > 0) {
-            const cleanName = getCleanChampionName(champInput.value);
-            const imgUrl = `https://gol.gg/_img/champions_icon/${cleanName}.png`;
-            const placeholderUrl = `https://media.tenor.com/_aAExG9FQDEAAAAj/league-of-legends-riot-games.gif`;
-            const games = filteredChampData.length;
-            const wins = filteredChampData.reduce((sum, row) => sum + (parseInt(row.result) === 1 ? 1 : 0), 0);
-            const winrate = ((wins / games) * 100).toFixed(2);
-
-            // Gerar o link usando generatePlayerGamesLink
-            const gamesLink = generatePlayerGamesLink(
-                [playerName],
-                [],
-                otherPlayerName ? [otherPlayerName] : [],
-                [],
-                champInput.value
-            );
-
-            imageDiv.innerHTML = `
-                <div class="champion-stats">
-                    <a href="${gamesLink}" target="_blank" class="games-link">Partidas</a>
-                    <div class="winrate">${winrate}%</div>
-                    <img src="${imgUrl}" alt="${champInput.value}" onerror="this.src='${placeholderUrl}'; this.onerror=null;">
-                    <div class="games">${games} jogos</div>
-                </div>
-            `;
-        } else {
-            imageDiv.innerHTML = '';
-        }
-    } else {
-        imageDiv.innerHTML = '';
-    }
-}
-function getWinrateColor(winrate) {
-    const winrateValue = parseFloat(winrate);
-    if (winrateValue < 40) {
-        return '#ff0000'; // Vermelho
-    } else if (winrateValue >= 40 && winrateValue < 55) {
-        return '#ffa500'; // Laranja
-    } else {
-        return '#00ff00'; // Verde
-    }
-}

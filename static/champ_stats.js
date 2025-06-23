@@ -1,9 +1,20 @@
-// Variável global para armazenar os dados do CSV
 let df = null;
 let isConfrontoDireto = false; // Flag para controlar o modo Confronto Direto
 
 // Lista de campeonatos Tier 1
 const TIER1_LEAGUES = ['LCK', 'LPL', 'LEC', 'LCS', 'LTA', 'LTA N', 'WLDS', 'MSI', 'EWC', 'LCP'];
+
+// Função para determinar a cor da taxa de vitórias
+function getWinrateColor(winrate) {
+    const winrateValue = parseFloat(winrate);
+    if (winrateValue < 40) {
+        return '#ff0000'; // Vermelho
+    } else if (winrateValue >= 40 && winrateValue < 55) {
+        return '#ffa500'; // Laranja
+    } else {
+        return '#00ff00'; // Verde
+    }
+}
 
 // Função para carregar o CSV
 function loadCSV() {
@@ -112,6 +123,7 @@ function updateImage(champId) {
         imageDiv.innerHTML = '';
     }
 }
+
 // Função para calcular médias (jogos, vitórias, vitórias %)
 function calcularMedias(dados, isTeam2 = false) {
     const jogos = dados.length;
@@ -248,8 +260,8 @@ function gerarTitulo(selectedChamps1, selectedChamps2, patchFilter, yearFilter, 
     } else {
         if (isConfrontoDireto && selectedChamps1.length > 0 && selectedChamps2.length > 0) {
             // Gerar um único link para o confronto direto
-            const champs1Text = selectedChamps1.map(c => c.name).join(' & ');
-            const champs2Text = selectedChamps2.map(c => c.name).join(' & ');
+            const champs1Text = selectedChamps1.length > 1 ? `(${selectedChamps1.map(c => c.name).join(' & ')})` : selectedChamps1[0].name;
+            const champs2Text = selectedChamps2.length > 1 ? `(${selectedChamps2.map(c => c.name).join(' & ')})` : selectedChamps2[0].name;
             const link = document.createElement('a');
             link.href = generateChampGamesLink(
                 selectedChamps1.map(c => c.name),
@@ -374,7 +386,7 @@ function displayBestChampsMeta() {
             champBlock.className = 'champ-block';
             const cleanName = getCleanChampionName(champ.name);
             champBlock.innerHTML = `
-                <div class="win-rate">${champ.winRate}%</div>
+                <div class="win-rate" style="color: ${getWinrateColor(champ.winRate)}">${champ.winRate}%</div>
                 <img src="https://gol.gg/_img/champions_icon/${cleanName}.png" alt="${champ.name}">
                 <div class="occurrences">${champ.occurrences} jogos</div>
             `;
@@ -411,7 +423,6 @@ function generateStats() {
 
     if (selectedChamps1.length === 0 && selectedChamps2.length === 0) {
         alert('Selecione pelo menos um campeão!');
-        document.getElementById('champ-stats-table').innerHTML = '';
         displayBestChampsMeta();
         return;
     }
@@ -518,7 +529,6 @@ function confrontoDireto() {
 
     if (selectedChamps1.length === 0 || selectedChamps2.length === 0) {
         alert('Selecione pelo menos um campeão de cada time para o Confronto Direto!');
-        document.getElementById('champ-stats-table').innerHTML = '';
         displayBestChampsMeta();
         return;
     }

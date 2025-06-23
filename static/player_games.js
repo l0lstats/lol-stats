@@ -101,6 +101,9 @@ function filterGames() {
         filteredData = filteredData.filter(row => effectivePlayers.includes(row.playername));
     }
 
+    // Ordenar por data em ordem decrescente
+    filteredData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
     // Gerar título dinâmico
     let titleText = '';
     if (players1.length > 0 || players2.length > 0) {
@@ -131,37 +134,47 @@ function filterGames() {
     tableContent += '<th>Data</th>';
     tableContent += '<th>Liga</th>';
     tableContent += '<th>Time</th>';
+    tableContent += '<th>Lineup</th>';
     tableContent += '<th>Posição</th>';
     tableContent += '<th>Jogador</th>';
-    tableContent += '<th>Campeão</th>';
     tableContent += '<th>Vitória</th>';
+    tableContent += '<th>Campeão</th>';
     tableContent += '<th>Kills</th>';
     tableContent += '<th>Deaths</th>';
     tableContent += '<th>Assists</th>';
     tableContent += '<th>Adversário</th>';
     tableContent += '<th>Time Adversário</th>';
+    tableContent += '<th>Lineup Adv</th>';
     tableContent += '</tr></thead>';
 
     tableContent += '<tbody>';
 
     filteredData.forEach(row => {
-        const adversaCol = confrontoDireto && players2.length > 0
-            ? (row.playername === players1[0] ? `adversa_player_${lane2}` : `adversa_player_${lane1}`)
-            : `adversa_player_${row.position?.toLowerCase() || ''}`;
-        
+        let adversaCol;
+        if (confrontoDireto && players1.length > 0 && players2.length > 0) {
+            // Modo Confronto Direto: usar a lane do adversário
+            adversaCol = row.playername === players1[0] ? `adversa_player_${lane2}` : `adversa_player_${lane1}`;
+        } else {
+            // Modo Stats: usar a posição do jogador atual
+            const position = row.position?.toLowerCase();
+            adversaCol = position ? `adversa_player_${position}` : '';
+        }
+
         tableContent += '<tr>';
         tableContent += `<td>${row.date || ''}</td>`;
         tableContent += `<td>${row.league || ''}</td>`;
         tableContent += `<td>${row.teamname || ''}</td>`;
+        tableContent += `<td>${row.team_players || ''}</td>`;
         tableContent += `<td>${row.position || ''}</td>`;
         tableContent += `<td>${row.playername || ''}</td>`;
-        tableContent += `<td>${row.champion || ''}</td>`;
         tableContent += `<td>${row.result || ''}</td>`;
+        tableContent += `<td>${row.champion || ''}</td>`;
         tableContent += `<td>${row.kills || ''}</td>`;
         tableContent += `<td>${row.deaths || ''}</td>`;
         tableContent += `<td>${row.assists || ''}</td>`;
-        tableContent += `<td>${row[adversaCol] || ''}</td>`;
+        tableContent += `<td>${adversaCol ? row[adversaCol] || '' : ''}</td>`;
         tableContent += `<td>${row.adversa_team || ''}</td>`;
+        tableContent += `<td>${row.adversa_players || ''}</td>`;
         tableContent += '</tr>';
     });
 
@@ -213,20 +226,25 @@ function downloadCSV() {
         filteredData = filteredData.filter(row => effectivePlayers.includes(row.playername));
     }
 
+    // Ordenar por data em ordem decrescente
+    filteredData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
     // Definir os nomes das colunas conforme exibidos na tabela
     const columnOrder = [
         { display: 'Data', original: 'date' },
         { display: 'Liga', original: 'league' },
         { display: 'Time', original: 'teamname' },
+        { display: 'Lineup', original: 'team_players' },
         { display: 'Posição', original: 'position' },
         { display: 'Jogador', original: 'playername' },
-        { display: 'Campeão', original: 'champion' },
         { display: 'Vitória', original: 'result' },
+        { display: 'Campeão', original: 'champion' },
         { display: 'Kills', original: 'kills' },
         { display: 'Deaths', original: 'deaths' },
         { display: 'Assists', original: 'assists' },
         { display: 'Adversário', original: null },
-        { display: 'Time Adversário', original: 'adversa_team' }
+        { display: 'Time Adversário', original: 'adversa_team' },
+        { display: 'Lineup Adv', original: 'adversa_players' }
     ];
 
     // Transformar dados para corresponder aos nomes e ordem das colunas da tabela

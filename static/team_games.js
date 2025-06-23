@@ -44,8 +44,8 @@ function loadCSV() {
 function exportToCSV(filteredData, title) {
     // Definir os cabeçalhos do CSV (em português, como na tabela)
     const headers = [
-        'Data', 'Liga', 'Lado','Time','Jogadores', 'Vitória',
-        'Kills', 'Deaths', '1ª Torre', '1º Dragão', '1º Sangue','Adversário', 'Jogadores_adv','Tempo(min)',
+        'Data', 'Liga', 'Lado','Time', 'Vitória','Lineup',
+        'Kills', 'Deaths', '1ª Torre', '1º Dragão', '1º Sangue','Adversário', 'Lineup Adv','Tempo(min)',
         'Dragões', 'Barons', 'Torres', 'Inibidores'
     ];
 
@@ -55,8 +55,8 @@ function exportToCSV(filteredData, title) {
         row.league || '-',
         row.side || '-',
         row.teamname || '-',
-        row.team_players || '-',
         row.result || '-',
+        row.team_players || '-',
         row.kills || '-',
         row.deaths || '-',
         row.firsttower || '-',
@@ -178,14 +178,17 @@ function displayTeamData() {
                     <th>Data</th>
                     <th>Liga</th>
                     <th>Lado</th>
+                    <th>Time</th>
                     <th>Vitória</th>
-                    <th>Adversário</th>
-                    <th>Tempo(min)</th>
+                    <th>Lineup</th>
                     <th>Kills</th>
                     <th>Deaths</th>
                     <th>1ª Torre</th>
                     <th>1º Dragão</th>
                     <th>1º Sangue</th>
+                    <th>Adversário</th>
+                    <th>Lineup Adv</th>
+                    <th>Tempo(min)</th>
                     <th>Dragões</th>
                     <th>Barons</th>
                     <th>Torres</th>
@@ -201,14 +204,17 @@ function displayTeamData() {
                 <td>${row.date || '-'}</td>
                 <td>${row.league || '-'}</td>
                 <td>${row.side || '-'}</td>
+                <td>${row.teamname || '-'}</td>
                 <td>${row.result || '-'}</td>
-                <td>${row.adversa_team || '-'}</td>
-                <td>${row.gamelength || '-'}</td>
+                <td>${row.team_players || '-'}</td>
                 <td>${row.kills || '-'}</td>
                 <td>${row.deaths || '-'}</td>
                 <td>${row.firsttower || '-'}</td>
                 <td>${row.firstdragon || '-'}</td>
                 <td>${row.firstblood || '-'}</td>
+                <td>${row.adversa_team || '-'}</td>
+                <td>${row.adversa_players || '-'}</td>
+                <td>${row.gamelength || '-'}</td>
                 <td>${row.totalDragons || '-'}</td>
                 <td>${row.totalBarons || '-'}</td>
                 <td>${row.totalTowers || '-'}</td>
