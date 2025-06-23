@@ -144,6 +144,12 @@ function updatePlayerImage(playerId) {
         if (playerInput.value === "Revolta") {
             imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/7/7a/ITZ_Revolta_2021_Split_1.png";
         }
+        if (playerInput.value === "esA") {
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/bb/PNG_esA_2020_Split_2.png";
+        }
+        if (playerInput.value === "Tay") {
+            imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/82/INTZ_Tay_2024_Split_1.png";
+        }
 
         imageDiv.innerHTML = `<div class="kda" id="${playerId}-kda"></div><img class="player-img" src="${imgUrl}" alt="${playerInput.value}" onerror="this.src='${placeholderUrl}'; this.onerror=null;"><div class="lane" id="${playerId}-lane" style="display: none;"></div>`;
     } else {
@@ -292,10 +298,10 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
     if (playerName === "Baiano") {
         imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/5/59/CNB_Baiano_2018_Split_2.png";
     }
-    if (playerInput.value === "Jukes") {
+    if (playerName === "Jukes") {
             imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/87/C9_Jukes_2019_Split_2.png";
     }
-    if (playerInput.value === "Rakin") {
+    if (playerName === "Rakin") {
             imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/2/25/CNB_Rakin_2018_Spring.png";
     }
     if (playerName === "Minerva") {
@@ -306,6 +312,12 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
     }
     if (playerName === "Revolta") {
         imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/7/7a/ITZ_Revolta_2021_Split_1.png";
+    }
+    if (playerName === "esA") {
+        imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/bb/PNG_esA_2020_Split_2.png";
+    }
+    if (playerName === "Tay") {
+        imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/82/INTZ_Tay_2024_Split_1.png";
     }
 
     const topChampions = getTopChampions(playerName, filteredData);
