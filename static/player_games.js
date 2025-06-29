@@ -40,6 +40,7 @@ function getQueryParams() {
         players2,
         year: params.get('year') || '',
         leagueFilter: params.get('league') || '',
+        result: params.get('result') || '',
         confrontoDireto: params.get('confrontoDireto') === 'true',
         champion: params.get('champion') ? decodeURIComponent(params.get('champion')) : ''
     };
@@ -62,11 +63,11 @@ function filterGames() {
         return;
     }
 
-    const { players1, players2, year, leagueFilter, confrontoDireto, champion } = getQueryParams();
+    const { players1, players2, year, leagueFilter, result, confrontoDireto, champion } = getQueryParams();
 
     let filteredData = df;
 
-    // Aplicar filtros de ano e liga antes da filtragem por jogadores
+    // Aplicar filtros de ano, liga e resultado antes da filtragem por jogadores
     if (year !== '') {
         filteredData = filteredData.filter(row => {
             if (!row.date) return false;
@@ -78,6 +79,10 @@ function filterGames() {
 
     if (leagueFilter !== '') {
         filteredData = filteredData.filter(row => row.league === leagueFilter);
+    }
+
+    if (result !== '') {
+        filteredData = filteredData.filter(row => row.result === result);
     }
 
     if (champion !== '') {
@@ -119,8 +124,14 @@ function filterGames() {
         titleText = 'Jogos Selecionados';
     }
 
-    if (year !== '') titleText += ` (${year})`;
-    if (leagueFilter !== '') titleText += ` (${leagueFilter})`;
+    let filters = [];
+    if (year !== '') filters.push(year);
+    if (leagueFilter !== '') filters.push(leagueFilter);
+    if (result === '1') filters.push('Vitórias');
+    if (result === '0') filters.push('Derrotas');
+    if (filters.length > 0) {
+        titleText += ` (${filters.join(', ')})`;
+    }
 
     // Atualizar título no header
     const headerTitle = document.getElementById('header-title');
@@ -190,10 +201,10 @@ function downloadCSV() {
         return;
     }
 
-    const { players1, players2, year, leagueFilter, confrontoDireto, champion } = getQueryParams();
+    const { players1, players2, year, leagueFilter, result, confrontoDireto, champion } = getQueryParams();
     let filteredData = df;
 
-    // Aplicar filtros de ano e liga antes da filtragem por jogadores
+    // Aplicar filtros de ano, liga e resultado antes da filtragem por jogadores
     if (year !== '') {
         filteredData = filteredData.filter(row => {
             if (!row.date) return false;
@@ -205,6 +216,10 @@ function downloadCSV() {
 
     if (leagueFilter !== '') {
         filteredData = filteredData.filter(row => row.league === leagueFilter);
+    }
+
+    if (result !== '') {
+        filteredData = filteredData.filter(row => row.result === result);
     }
 
     if (champion !== '') {
@@ -288,6 +303,8 @@ function downloadCSV() {
 
     if (year !== '') fileName += `_${year}`;
     if (leagueFilter !== '') fileName += `_${leagueFilter}`;
+    if (result === '1') fileName += '_Vitórias';
+    if (result === '0') fileName += '_Derrotas';
 
     fileName = fileName.replace(/[^a-zA-Z0-9_-]/g, '_') + '.csv';
 

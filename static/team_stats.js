@@ -23,6 +23,7 @@ function getTeamLogoUrl(teamName, variant = 'square', ext = 'webp') {
     const teamLogoExceptions = {
         'Beşiktaş Esports': 'Be3F_Esports',
         'LOUD': 'https://dpm.lol/esport/teams/LLL.webp',
+        'FURIA': 'https://dpm.lol/esport/teams/FUR.webp',
         'INTZ': 'https://dpm.lol/esport/teams/ITZ.webp',
         'KaBuM! Ilha das Lendas': 'https://dpm.lol/esport/teams/KBM.webp',
         'KaBuM! Esports': 'https://dpm.lol/esport/teams/KBM.webp',
