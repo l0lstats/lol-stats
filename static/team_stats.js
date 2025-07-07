@@ -502,7 +502,7 @@ function comparar() {
                 img1.onerror = () => {
                     img1.src = getTeamLogoUrl(time1, 'profile', 'png');
                     img1.onerror = () => {
-                        img1.src = 'https://media.tenor.com/_aAExG9FQDEAAAAj/league-of-legends-riot-games.gif';
+                        img1.src = 'blitzGif.gif';
                         console.log(`Falha ao carregar imagem de ${time1}`);
                     };
                 };
@@ -522,7 +522,7 @@ function comparar() {
                 img2.onerror = () => {
                     img2.src = getTeamLogoUrl(time2, 'profile', 'png');
                     img2.onerror = () => {
-                        img2.src = 'https://media.tenor.com/W_GgSsF7x9sAAAAi/amumu-sad.gif';
+                        img2.src = 'amumuGif.gif';
                         console.log(`Falha ao carregar imagem de ${time2}`);
                     };
                 };
@@ -634,7 +634,7 @@ function confrontoDireto() {
                 img1.onerror = () => {
                     img1.src = getTeamLogoUrl(time1, 'profile', 'png');
                     img1.onerror = () => {
-                        img1.src = 'https://media.tenor.com/W_GgSsF7x9sAAAAi/amumu-sad.gif';
+                        img1.src = 'amumuGif.gif';
                         console.log(`Falha ao carregar imagem de ${time1}`);
                     };
                 };
@@ -654,7 +654,7 @@ function confrontoDireto() {
                 img2.onerror = () => {
                     img2.src = getTeamLogoUrl(time2, 'profile', 'png');
                     img2.onerror = () => {
-                        img2.src = 'https://media.tenor.com/_aAExG9FQDEAAAAj/league-of-legends-riot-games.gif';
+                        img2.src = 'blitzGif.gif';
                         console.log(`Falha ao carregar imagem de ${time2}`);
                     };
                 };

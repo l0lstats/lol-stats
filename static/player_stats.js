@@ -200,7 +200,7 @@ function updateChampionImage(champId, playerName, filteredData, otherPlayerName 
         if (filteredChampData.length > 0) {
             const cleanName = getCleanChampionName(champInput.value);
             const imgUrl = `https://gol.gg/_img/champions_icon/${cleanName}.png`;
-            const placeholderUrl = `https://media.tenor.com/_aAExG9FQDEAAAAj/league-of-legends-riot-games.gif`;
+            const placeholderUrl = `blitzGif.gif`;
             const games = filteredChampData.length;
             const wins = filteredChampData.reduce((sum, row) => sum + (parseInt(row.result) === 1 ? 1 : 0), 0);
             const winrate = ((wins / games) * 100).toFixed(2);
@@ -375,7 +375,7 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
     topChampions.forEach(champ => {
         const cleanChampName = getCleanChampionName(champ.name);
         const champImgUrl = `https://gol.gg/_img/champions_icon/${cleanChampName}.png`;
-        const champPlaceholderUrl = `https://media.tenor.com/_aAExG9FQDEAAAAj/league-of-legends-riot-games.gif`;
+        const champPlaceholderUrl = `blitzGif.gif`;
         const gamesLink = generatePlayerGamesLink([playerName], [], otherPlayerName ? [otherPlayerName] : [], [], champ.name);
         content += `
             <div class="champion">

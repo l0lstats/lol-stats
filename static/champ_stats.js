@@ -117,7 +117,7 @@ function updateImage(champId) {
     if (champInput.value) {
         const cleanName = getCleanChampionName(champInput.value);
         const imgUrl = `https://gol.gg/_img/champions_icon/${cleanName}.png`;
-        const placeholderUrl = 'https://media.tenor.com/_aAExG9FQDEAAAAj/league-of-legends-riot-games.gif';
+        const placeholderUrl = 'blitzGif.gif';
         imageDiv.innerHTML = `<img src="${imgUrl}" alt="${champInput.value}" style="max-width: 100px; max-height: 100px;" onerror="this.src='${placeholderUrl}'; this.onerror=null;">`;
     } else {
         imageDiv.innerHTML = '';
