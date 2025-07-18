@@ -41,6 +41,7 @@ function getQueryParams() {
         year: params.get('year') || '',
         leagueFilter: params.get('league') || '',
         result: params.get('result') || '',
+        recentGames: params.get('recentGames') || '', // Adicionado para capturar o parâmetro recentGames
         confrontoDireto: params.get('confrontoDireto') === 'true',
         champion: params.get('champion') ? decodeURIComponent(params.get('champion')) : ''
     };
@@ -63,7 +64,7 @@ function filterGames() {
         return;
     }
 
-    const { players1, players2, year, leagueFilter, result, confrontoDireto, champion } = getQueryParams();
+    const { players1, players2, year, leagueFilter, result, recentGames, confrontoDireto, champion } = getQueryParams();
 
     let filteredData = df;
 
@@ -106,8 +107,14 @@ function filterGames() {
         filteredData = filteredData.filter(row => effectivePlayers.includes(row.playername));
     }
 
-    // Ordenar por data em ordem decrescente
+    // Ordenar por data em ordem decrescente e aplicar filtro de jogos recentes
     filteredData.sort((a, b) => new Date(b.date) - new Date(a.date));
+    if (recentGames) {
+        const recentLimit = parseInt(recentGames);
+        if (!isNaN(recentLimit) && recentLimit > 0) {
+            filteredData = filteredData.slice(0, recentLimit);
+        }
+    }
 
     // Gerar título dinâmico
     let titleText = '';
@@ -129,6 +136,7 @@ function filterGames() {
     if (leagueFilter !== '') filters.push(leagueFilter);
     if (result === '1') filters.push('Vitórias');
     if (result === '0') filters.push('Derrotas');
+    if (recentGames) filters.push(`Últimos ${recentGames} jogos`); // Adicionado para incluir o filtro de jogos recentes no título
     if (filters.length > 0) {
         titleText += ` (${filters.join(', ')})`;
     }
@@ -201,7 +209,7 @@ function downloadCSV() {
         return;
     }
 
-    const { players1, players2, year, leagueFilter, result, confrontoDireto, champion } = getQueryParams();
+    const { players1, players2, year, leagueFilter, result, recentGames, confrontoDireto, champion } = getQueryParams();
     let filteredData = df;
 
     // Aplicar filtros de ano, liga e resultado antes da filtragem por jogadores
@@ -241,8 +249,14 @@ function downloadCSV() {
         filteredData = filteredData.filter(row => effectivePlayers.includes(row.playername));
     }
 
-    // Ordenar por data em ordem decrescente
+    // Ordenar por data em ordem decrescente e aplicar filtro de jogos recentes
     filteredData.sort((a, b) => new Date(b.date) - new Date(a.date));
+    if (recentGames) {
+        const recentLimit = parseInt(recentGames);
+        if (!isNaN(recentLimit) && recentLimit > 0) {
+            filteredData = filteredData.slice(0, recentLimit);
+        }
+    }
 
     // Definir os nomes das colunas conforme exibidos na tabela
     const columnOrder = [
@@ -305,6 +319,7 @@ function downloadCSV() {
     if (leagueFilter !== '') fileName += `_${leagueFilter}`;
     if (result === '1') fileName += '_Vitórias';
     if (result === '0') fileName += '_Derrotas';
+    if (recentGames) fileName += `_Últimos_${recentGames}_jogos`; // Adicionado para incluir o filtro de jogos recentes no nome do arquivo
 
     fileName = fileName.replace(/[^a-zA-Z0-9_-]/g, '_') + '.csv';
 
