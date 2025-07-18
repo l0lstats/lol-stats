@@ -24,6 +24,7 @@ function loadCSV() {
                 populatePlayers();
             };
             document.getElementById('result-filter').onchange = populatePlayers;
+            document.getElementById('recent-games').onchange = populatePlayers;
             esconderLoader();
         }
     });
@@ -61,6 +62,7 @@ function populatePlayers() {
     const yearFilter = document.getElementById('year-filter').value;
     const leagueFilter = document.getElementById('league-filter').value;
     const resultFilter = document.getElementById('result-filter').value;
+    const recentGames = document.getElementById('recent-games').value;
 
     let dfFiltered = df;
     if (yearFilter !== '') {
@@ -76,6 +78,9 @@ function populatePlayers() {
     }
     if (resultFilter !== '') {
         dfFiltered = dfFiltered.filter(row => row.result === resultFilter);
+    }
+    if (recentGames && recentGames !== 'Todos os Jogos') {
+        dfFiltered = dfFiltered.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
     }
 
     const players = [...new Set(dfFiltered.map(row => row.playername).filter(p => p))].sort();
@@ -272,6 +277,10 @@ function generatePlayerGamesLink(players1, lanes1, players2 = [], lanes2 = [], c
     if (result) {
         urlParams.append('result', result);
     }
+    const recentGames = document.getElementById('recent-games').value;
+    if (recentGames && recentGames !== 'Todos os Jogos') {
+        urlParams.append('recentGames', recentGames);
+    }
     if (isConfrontoDireto && effectivePlayers2.length > 0) {
         urlParams.append('confrontoDireto', 'true');
     }
@@ -283,7 +292,7 @@ function generatePlayerGamesLink(players1, lanes1, players2 = [], lanes2 = [], c
 
 function gerarChampionSection(playerId, playerName, filteredData, otherPlayerName = null) {
     if (!playerName) return '';
-    const cleanName = getCleanPlayerName(playerInput.value).toLowerCase();
+    const cleanName = getCleanPlayerName(playerName).toLowerCase();
     let imgUrl = `https://dpm.lol/esport/players/${cleanName}.webp`;
     const placeholderUrl = `https://dpm.lol/esport/players/nopicture.webp`;
 
@@ -344,6 +353,7 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
     const yearFilter = document.getElementById('year-filter').value;
     const leagueFilter = document.getElementById('league-filter').value;
     const resultFilter = document.getElementById('result-filter').value;
+    const recentGames = document.getElementById('recent-games').value;
 
     let titleText = '';
     if (isConfrontoDireto && selectedPlayers1.length > 0 && selectedPlayers2.length > 0) {
@@ -356,6 +366,7 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
     if (leagueFilter) filters.push(leagueFilter);
     if (resultFilter === '1') filters.push('Vitórias');
     if (resultFilter === '0') filters.push('Derrotas');
+    if (recentGames && recentGames !== 'Todos os Jogos') filters.push(`Últimos ${recentGames} jogos`);
     if (filters.length > 0) {
         titleText += ` (${filters.join(', ')})`;
     }
@@ -397,6 +408,7 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
                 const yearFilter = document.getElementById('year-filter').value;
                 const leagueFilter = document.getElementById('league-filter').value;
                 const resultFilter = document.getElementById('result-filter').value;
+                const recentGames = document.getElementById('recent-games').value;
 
                 // Aplicar filtros de ano, liga e resultado
                 if (yearFilter) {
@@ -420,6 +432,11 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
                     currentFilteredData = currentFilteredData.filter(row => 
                         row.position.toLowerCase() === playerLane && row[adversaCol] === otherPlayerName
                     );
+                }
+
+                // Aplicar filtro de jogos recentes
+                if (recentGames && recentGames !== 'Todos os Jogos') {
+                    currentFilteredData = currentFilteredData.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
                 }
 
                 updateChampionImage(`champ-${playerId}`, playerName, currentFilteredData, otherPlayerName);
@@ -574,7 +591,7 @@ function gerarTabela(medias1, medias2, killStats1, killStats2, deathStats1, deat
     return tableContent;
 }
 
-function gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilter, resultFilter, isConfrontoDireto) {
+function gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilter, resultFilter, recentGames, isConfrontoDireto) {
     const h2 = document.createElement('h2');
     if (selectedPlayers1.length === 0 && selectedPlayers2.length === 0) {
         h2.textContent = 'Estatísticas de Jogadores';
@@ -641,6 +658,7 @@ function gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilte
         if (leagueFilter) filters.push(leagueFilter);
         if (resultFilter === '1') filters.push('Vitórias');
         if (resultFilter === '0') filters.push('Derrotas');
+        if (recentGames && recentGames !== 'Todos os Jogos') filters.push(`Últimos ${recentGames} jogos`);
         if (filters.length > 0) {
             h2.appendChild(document.createTextNode(` (${filters.join(', ')})`));
         }
@@ -685,6 +703,7 @@ function generateStats() {
     const yearFilter = document.getElementById('year-filter').value;
     const leagueFilter = document.getElementById('league-filter').value;
     const resultFilter = document.getElementById('result-filter').value;
+    const recentGames = document.getElementById('recent-games').value;
     const killLine = parseFloat(document.getElementById('kill-line').value);
     const deathLine = parseFloat(document.getElementById('death-line').value);
     const assistLine = parseFloat(document.getElementById('assist-line').value);
@@ -701,6 +720,9 @@ function generateStats() {
     }
     if (resultFilter) {
         filteredData = filteredData.filter(row => row.result === resultFilter);
+    }
+    if (recentGames && recentGames !== 'Todos os Jogos') {
+        filteredData = filteredData.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
     }
 
     let filteredData1 = filteredData;
@@ -746,7 +768,7 @@ function generateStats() {
 
     const resultado = document.getElementById('player-stats-table');
     resultado.innerHTML = '';
-    const h2 = gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilter, resultFilter, isConfrontoDireto);
+    const h2 = gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilter, resultFilter, recentGames, isConfrontoDireto);
     resultado.appendChild(h2);
     const tableContent = gerarTabela(medias1, medias2, killStats1, killStats2, deathStats1, deathStats2, assistStats1, assistStats2, selectedPlayers1, selectedPlayers2, killLine, deathLine, assistLine);
     resultado.insertAdjacentHTML('beforeend', tableContent);
@@ -781,6 +803,7 @@ function confrontoDireto() {
     const yearFilter = document.getElementById('year-filter').value;
     const leagueFilter = document.getElementById('league-filter').value;
     const resultFilter = document.getElementById('result-filter').value;
+    const recentGames = document.getElementById('recent-games').value;
     const killLine = parseFloat(document.getElementById('kill-line').value);
     const deathLine = parseFloat(document.getElementById('death-line').value);
     const assistLine = parseFloat(document.getElementById('assist-line').value);
@@ -831,6 +854,11 @@ function confrontoDireto() {
         return row.playername === player2 && row.position.toLowerCase() === selectedPlayers2[0].lane && row[adversaCol] === player1;
     });
 
+    if (recentGames && recentGames !== 'Todos os Jogos') {
+        filteredData1 = filteredData1.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
+        filteredData2 = filteredData2.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
+    }
+
     const medias1 = filteredData1.length > 0 ? calcularMedias(filteredData1, false) : {
         Jogos: 0,
         Vitórias: 0,
@@ -862,7 +890,7 @@ function confrontoDireto() {
 
     const resultado = document.getElementById('player-stats-table');
     resultado.innerHTML = '';
-    const h2 = gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilter, resultFilter, isConfrontoDireto);
+    const h2 = gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilter, resultFilter, recentGames, isConfrontoDireto);
     resultado.appendChild(h2);
     const tableContent = gerarTabela(medias1, medias2, killStats1, killStats2, deathStats1, deathStats2, assistStats1, assistStats2, selectedPlayers1, selectedPlayers2, killLine, deathLine, assistLine);
     resultado.insertAdjacentHTML('beforeend', tableContent);
@@ -896,6 +924,7 @@ function comparar() {
     const yearFilter = document.getElementById('year-filter').value;
     const leagueFilter = document.getElementById('league-filter').value;
     const resultFilter = document.getElementById('result-filter').value;
+    const recentGames = document.getElementById('recent-games').value;
     const killLine = parseFloat(document.getElementById('kill-line').value);
     const deathLine = parseFloat(document.getElementById('death-line').value);
     const assistLine = parseFloat(document.getElementById('assist-line').value);
@@ -924,6 +953,11 @@ function comparar() {
     if (resultFilter) {
         filteredData1 = filteredData1.filter(row => row.result === resultFilter);
         filteredData2 = filteredData2.filter(row => row.result === resultFilter);
+    }
+
+    if (recentGames && recentGames !== 'Todos os Jogos') {
+        filteredData1 = filteredData1.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
+        filteredData2 = filteredData2.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
     }
 
     if (selectedPlayers1.length > 0) {
@@ -962,11 +996,11 @@ function comparar() {
     const deathStats1 = filteredData1.length > 0 ? calcularDeathStats(filteredData1, deathLine) : { percentBelow: 0, percentAbove: 0 };
     const deathStats2 = filteredData2.length > 0 ? calcularDeathStats(filteredData2, deathLine) : { percentBelow: 0, percentAbove: 0 };
     const assistStats1 = filteredData1.length > 0 ? calcularAssistStats(filteredData1, assistLine) : { percentBelow: 0, percentAbove: 0 };
-    const assistStats2 = filteredData2.length > 0 ? calcularAssistStats(filteredData2, assistLine) : { percentBelow: 0, percentAbove: 0 };
+    const assistStats2 = selectedPlayers2.length > 0 ? calcularAssistStats(filteredData2, assistLine) : { percentBelow: 0, percentAbove: 0 };
 
     const resultado = document.getElementById('player-stats-table');
     resultado.innerHTML = '';
-    const h2 = gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilter, resultFilter, false);
+    const h2 = gerarTitulo(selectedPlayers1, selectedPlayers2, yearFilter, leagueFilter, resultFilter, recentGames, false);
     resultado.appendChild(h2);
     const tableContent = gerarTabela(medias1, medias2, killStats1, killStats2, deathStats1, deathStats2, assistStats1, assistStats2, selectedPlayers1, selectedPlayers2, killLine, deathLine, assistLine);
     resultado.insertAdjacentHTML('beforeend', tableContent);
