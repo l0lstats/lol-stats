@@ -110,9 +110,9 @@ function updatePlayerImage(playerId) {
     const imageDiv = document.getElementById(`${playerId}-image`);
     
     if (playerInput.value) {
-        const cleanName = getCleanPlayerName(playerInput.value);
+        const cleanName = getCleanPlayerName(playerInput.value).toLowerCase();
         let imgUrl = `https://dpm.lol/esport/players/${cleanName}.webp`;
-        const placeholderUrl = `https://dpm.lol/esport/players/NoPicture.webp`;
+        const placeholderUrl = `https://dpm.lol/esport/players/nopicture.webp`;
         
         // Exceções para imagens específicas de jogadores
         if (playerInput.value === "xPeke") {
@@ -283,9 +283,9 @@ function generatePlayerGamesLink(players1, lanes1, players2 = [], lanes2 = [], c
 
 function gerarChampionSection(playerId, playerName, filteredData, otherPlayerName = null) {
     if (!playerName) return '';
-    const cleanName = getCleanPlayerName(playerName);
+    const cleanName = getCleanPlayerName(playerInput.value).toLowerCase();
     let imgUrl = `https://dpm.lol/esport/players/${cleanName}.webp`;
-    const placeholderUrl = `https://dpm.lol/esport/players/NoPicture.webp`;
+    const placeholderUrl = `https://dpm.lol/esport/players/nopicture.webp`;
 
     // Exceções para imagens específicas de jogadores
     if (playerName === "xPeke") {
