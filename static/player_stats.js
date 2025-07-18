@@ -25,10 +25,7 @@ function loadCSV() {
                 populatePlayers();
             };
             document.getElementById('result-filter').onchange = populatePlayers;
-            document.getElementById('recent-games').onchange = () => {
-                generateStats();
-                if (isConfrontoDireto) confrontoDireto();
-            };
+            
             esconderLoader();
         }
     });
