@@ -522,7 +522,7 @@ function calcularAssistStats(dados, assistLine) {
     const assistsAbove = totalJogos - assistsBelow;
     const percentBelow = totalJogos > 0 ? (assistsBelow / totalJogos * 100).toFixed(2) : 0;
     const percentAbove = totalJogos > 0 ? (assistsAbove / totalJogos * 100).toFixed(2) : 0;
-    return { totalJogos, assistsBelow, assistsAbove, percentBelow, percentAbove };
+    return { totalJogos, killsBelow, killsAbove, percentBelow, percentAbove };
 }
 
 function gerarTabela(medias1, medias2, killStats1, killStats2, deathStats1, deathStats2, assistStats1, assistStats2, selectedPlayers1, selectedPlayers2, killLine, deathLine, assistLine) {
@@ -735,6 +735,17 @@ function generateStats() {
     let filteredData1 = df;
     let filteredData2 = df;
 
+    // Filtrar por jogador primeiro
+    if (selectedPlayers1.length > 0) {
+        filteredData1 = filteredData1.filter(row => row.playername === player1);
+        selectedPlayers1[0].lane = getPlayerLane(player1, filteredData1);
+    }
+    if (selectedPlayers2.length > 0) {
+        filteredData2 = filteredData2.filter(row => row.playername === player2);
+        selectedPlayers2[0].lane = getPlayerLane(player2, filteredData2);
+    }
+
+    // Aplicar outros filtros (ano, liga, resultado)
     if (yearFilter) {
         filteredData1 = filteredData1.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
         filteredData2 = filteredData2.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
@@ -747,18 +758,11 @@ function generateStats() {
         filteredData1 = filteredData1.filter(row => row.result === resultFilter);
         filteredData2 = filteredData2.filter(row => row.result === resultFilter);
     }
+
+    // Aplicar filtro de jogos recentes após filtrar por jogador
     if (recentGames) {
         filteredData1 = filteredData1.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
         filteredData2 = filteredData2.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
-    }
-
-    if (selectedPlayers1.length > 0) {
-        filteredData1 = filteredData1.filter(row => row.playername === player1);
-        selectedPlayers1[0].lane = getPlayerLane(player1, filteredData1);
-    }
-    if (selectedPlayers2.length > 0) {
-        filteredData2 = filteredData2.filter(row => row.playername === player2);
-        selectedPlayers2[0].lane = getPlayerLane(player2, filteredData2);
     }
 
     const medias1 = filteredData1.length > 0 ? calcularMedias(filteredData1, false) : {
@@ -852,6 +856,21 @@ function confrontoDireto() {
     let filteredData1 = df;
     let filteredData2 = df;
 
+    // Determinar lanes dos jogadores primeiro
+    selectedPlayers1[0].lane = getPlayerLane(player1, filteredData1);
+    selectedPlayers2[0].lane = getPlayerLane(player2, filteredData2);
+
+    // Filtrar por jogadores e confronto direto
+    filteredData1 = filteredData1.filter(row => {
+        const adversaCol = `adversa_player_${selectedPlayers2[0].lane}`;
+        return row.playername === player1 && row.position.toLowerCase() === selectedPlayers1[0].lane && row[adversaCol] === player2;
+    });
+    filteredData2 = filteredData2.filter(row => {
+        const adversaCol = `adversa_player_${selectedPlayers1[0].lane}`;
+        return row.playername === player2 && row.position.toLowerCase() === selectedPlayers2[0].lane && row[adversaCol] === player1;
+    });
+
+    // Aplicar outros filtros (ano, liga, resultado)
     if (yearFilter) {
         filteredData1 = filteredData1.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
         filteredData2 = filteredData2.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
@@ -865,18 +884,7 @@ function confrontoDireto() {
         filteredData2 = filteredData2.filter(row => row.result === resultFilter);
     }
 
-    selectedPlayers1[0].lane = getPlayerLane(player1, filteredData1);
-    selectedPlayers2[0].lane = getPlayerLane(player2, filteredData2);
-
-    filteredData1 = filteredData1.filter(row => {
-        const adversaCol = `adversa_player_${selectedPlayers2[0].lane}`;
-        return row.playername === player1 && row.position.toLowerCase() === selectedPlayers1[0].lane && row[adversaCol] === player2;
-    });
-    filteredData2 = filteredData2.filter(row => {
-        const adversaCol = `adversa_player_${selectedPlayers1[0].lane}`;
-        return row.playername === player2 && row.position.toLowerCase() === selectedPlayers2[0].lane && row[adversaCol] === player1;
-    });
-
+    // Aplicar filtro de jogos recentes após filtrar por jogador e confronto direto
     if (recentGames) {
         filteredData1 = filteredData1.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
         filteredData2 = filteredData2.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
@@ -968,26 +976,7 @@ function comparar() {
     let filteredData1 = df;
     let filteredData2 = df;
 
-    if (yearFilter) {
-        filteredData1 = filteredData1.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
-        filteredData2 = filteredData2.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
-    }
-
-    if (leagueFilter) {
-        filteredData1 = filteredData1.filter(row => row.league === leagueFilter);
-        filteredData2 = filteredData2.filter(row => row.league === leagueFilter);
-    }
-
-    if (resultFilter) {
-        filteredData1 = filteredData1.filter(row => row.result === resultFilter);
-        filteredData2 = filteredData2.filter(row => row.result === resultFilter);
-    }
-
-    if (recentGames) {
-        filteredData1 = filteredData1.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
-        filteredData2 = filteredData2.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
-    }
-
+    // Filtrar por jogador primeiro
     if (selectedPlayers1.length > 0) {
         filteredData1 = filteredData1.filter(row => row.playername === player1);
         selectedPlayers1[0].lane = getPlayerLane(player1, filteredData1);
@@ -995,6 +984,26 @@ function comparar() {
     if (selectedPlayers2.length > 0) {
         filteredData2 = filteredData2.filter(row => row.playername === player2);
         selectedPlayers2[0].lane = getPlayerLane(player2, filteredData2);
+    }
+
+    // Aplicar outros filtros (ano, liga, resultado)
+    if (yearFilter) {
+        filteredData1 = filteredData1.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
+        filteredData2 = filteredData2.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
+    }
+    if (leagueFilter) {
+        filteredData1 = filteredData1.filter(row => row.league === leagueFilter);
+        filteredData2 = filteredData2.filter(row => row.league === leagueFilter);
+    }
+    if (resultFilter) {
+        filteredData1 = filteredData1.filter(row => row.result === resultFilter);
+        filteredData2 = filteredData2.filter(row => row.result === resultFilter);
+    }
+
+    // Aplicar filtro de jogos recentes após filtrar por jogador
+    if (recentGames) {
+        filteredData1 = filteredData1.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
+        filteredData2 = filteredData2.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
     }
 
     const medias1 = filteredData1.length > 0 ? calcularMedias(filteredData1, false) : {
