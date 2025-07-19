@@ -340,26 +340,16 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
         imgUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/82/INTZ_Tay_2024_Split_1.png";
     }
 
-    let champFilteredData = df;
-    const yearFilter = document.getElementById('year-filter').value;
-    const leagueFilter = document.getElementById('league-filter').value;
-    const resultFilter = document.getElementById('result-filter').value;
+    let champFilteredData = filteredData;
     const recentGames = document.getElementById('recent-games').value;
 
-    if (yearFilter) {
-        champFilteredData = champFilteredData.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
-    }
-    if (leagueFilter) {
-        champFilteredData = champFilteredData.filter(row => row.league === leagueFilter);
-    }
-    if (resultFilter) {
-        champFilteredData = champFilteredData.filter(row => row.result === resultFilter);
-    }
+    console.log('gerarChampionSection - Dados iniciais:', champFilteredData.length);
+    champFilteredData = champFilteredData.filter(row => row.playername === playerName);
+    console.log('gerarChampionSection - Após filtro de jogador:', champFilteredData.length);
     if (recentGames && recentGames !== 'Todos os Jogos') {
         champFilteredData = champFilteredData.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
+        console.log('gerarChampionSection - Após filtro de jogos recentes:', champFilteredData.length);
     }
-    champFilteredData = champFilteredData.filter(row => row.playername === playerName);
-
     if (isConfrontoDireto && otherPlayerName) {
         const playerLane = getPlayerLane(playerName, df);
         const otherPlayerLane = getPlayerLane(otherPlayerName, df);
@@ -367,6 +357,7 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
         champFilteredData = champFilteredData.filter(row => 
             row.position.toLowerCase() === playerLane && row[adversaCol] === otherPlayerName
         );
+        console.log('gerarChampionSection - Após filtro de confronto direto:', champFilteredData.length);
     }
 
     const topChampions = getTopChampions(playerName, champFilteredData);
@@ -381,6 +372,9 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
         titleText = selectedPlayers1[0].name;
     }
     let filters = [];
+    const yearFilter = document.getElementById('year-filter').value;
+    const leagueFilter = document.getElementById('league-filter').value;
+    const resultFilter = document.getElementById('result-filter').value;
     if (yearFilter) filters.push(yearFilter);
     if (leagueFilter) filters.push(leagueFilter);
     if (resultFilter === '1') filters.push('Vitórias');
@@ -423,23 +417,16 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
         const champInput = document.getElementById(`champ-${playerId}`);
         if (champInput) {
             champInput.addEventListener('input', () => {
-                let currentFilteredData = df;
-                const yearFilter = document.getElementById('year-filter').value;
-                const leagueFilter = document.getElementById('league-filter').value;
-                const resultFilter = document.getElementById('result-filter').value;
+                let currentFilteredData = filteredData;
                 const recentGames = document.getElementById('recent-games').value;
 
-                if (yearFilter) {
-                    currentFilteredData = currentFilteredData.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
-                }
-                if (leagueFilter) {
-                    currentFilteredData = currentFilteredData.filter(row => row.league === leagueFilter);
-                }
-                if (resultFilter) {
-                    currentFilteredData = currentFilteredData.filter(row => row.result === resultFilter);
-                }
+                console.log('champInput - Dados iniciais:', currentFilteredData.length);
                 currentFilteredData = currentFilteredData.filter(row => row.playername === playerName);
-
+                console.log('champInput - Após filtro de jogador:', currentFilteredData.length);
+                if (recentGames && recentGames !== 'Todos os Jogos') {
+                    currentFilteredData = currentFilteredData.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
+                    console.log('champInput - Após filtro de jogos recentes:', currentFilteredData.length);
+                }
                 if (isConfrontoDireto && otherPlayerName) {
                     const playerLane = getPlayerLane(playerName, df);
                     const otherPlayerLane = getPlayerLane(otherPlayerName, df);
@@ -447,10 +434,7 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
                     currentFilteredData = currentFilteredData.filter(row => 
                         row.position.toLowerCase() === playerLane && row[adversaCol] === otherPlayerName
                     );
-                }
-
-                if (recentGames && recentGames !== 'Todos os Jogos') {
-                    currentFilteredData = currentFilteredData.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
+                    console.log('champInput - Após filtro de confronto direto:', currentFilteredData.length);
                 }
 
                 updateChampionImage(`champ-${playerId}`, playerName, currentFilteredData, otherPlayerName);
