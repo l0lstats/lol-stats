@@ -260,10 +260,10 @@ function getTopChampions(playerName, filteredData) {
 function generatePlayerGamesLink(players1, lanes1, players2 = [], lanes2 = [], champion = null) {
     const urlParams = new URLSearchParams();
     
-    // Se um campeão for especificado, usar apenas o jogador principal (players1)
-    // Caso contrário, incluir ambos os jogadores para confronto direto ou estatísticas gerais
-    const effectivePlayers1 = champion ? players1 : players1.length > 0 ? players1 : players2;
-    const effectivePlayers2 = champion ? [] : players1.length > 0 && players2.length > 0 ? players2 : [];
+    // Definir jogadores efetivos
+    const effectivePlayers1 = players1.length > 0 ? players1 : players2;
+    // Incluir players2 apenas se isConfrontoDireto for true ou se não houver champion
+    const effectivePlayers2 = (isConfrontoDireto || !champion) && players1.length > 0 && players2.length > 0 ? players2 : [];
 
     if (effectivePlayers1[0]) {
         urlParams.append('player1_1', encodeURIComponent(effectivePlayers1[0]));
