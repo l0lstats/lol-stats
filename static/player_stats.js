@@ -237,16 +237,24 @@ function getTopChampions(playerName, filteredData) {
         championCounts[row.champion].games += 1;
         championCounts[row.champion].wins += parseInt(row.result) === 1 ? 1 : 0;
     });
-    const champions = Object.keys(championCounts)
-        .filter(champ => championCounts[champ].games >= 10)
-        .map(champ => ({
-            name: champ,
-            games: championCounts[champ].games,
-            winrate: ((championCounts[champ].wins / championCounts[champ].games) * 100).toFixed(2)
-        }))
-        .sort((a, b) => b.winrate - a.winrate || b.games - a.games)
-        .slice(0, 7);
-    return champions;
+    console.log('getTopChampions - Total de campeões:', Object.keys(championCounts).length);
+    
+    // Criar uma cópia dos dados para evitar modificar filteredData
+    const champions = Object.keys(championCounts).map(champ => ({
+        name: champ,
+        games: championCounts[champ].games,
+        winrate: ((championCounts[champ].wins / championCounts[champ].games) * 100).toFixed(2)
+    }));
+    
+    // Ordenar por número de jogos (decrescente) e selecionar os 7 primeiros
+    const topByGames = champions.sort((a, b) => b.games - a.games).slice(0, 7);
+    console.log('getTopChampions - Após seleção dos 7 com mais jogos:', topByGames.length);
+    
+    // Ordenar os 7 selecionados por taxa de vitória (decrescente)
+    const topChampions = topByGames.sort((a, b) => b.winrate - a.winrate || b.games - a.games);
+    console.log('getTopChampions - Após ordenação por winrate:', topChampions.length);
+    
+    return topChampions;
 }
 
 function generatePlayerGamesLink(players1, lanes1, players2 = [], lanes2 = [], champion = null) {
