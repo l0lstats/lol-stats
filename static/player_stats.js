@@ -238,6 +238,7 @@ function getTopChampions(playerName, filteredData) {
         championCounts[row.champion].wins += parseInt(row.result) === 1 ? 1 : 0;
     });
     const champions = Object.keys(championCounts)
+        .filter(champ => championCounts[champ].games >= 10)
         .map(champ => ({
             name: champ,
             games: championCounts[champ].games,
@@ -245,7 +246,6 @@ function getTopChampions(playerName, filteredData) {
         }))
         .sort((a, b) => b.winrate - a.winrate || b.games - a.games)
         .slice(0, 7);
-    console.log('getTopChampions - Campeões encontrados:', champions.length, 'Dados filtrados:', filteredData.length);
     return champions;
 }
 
@@ -420,49 +420,43 @@ function gerarChampionSection(playerId, playerName, filteredData, otherPlayerNam
     populateChampions(playerId, playerName, champFilteredData);
 
     setTimeout(() => {
-    const champInput = document.getElementById(`champ-${playerId}`);
-    if (champInput) {
-        champInput.addEventListener('input', () => {
-            let currentFilteredData = df;
-            const yearFilter = document.getElementById('year-filter').value;
-            const leagueFilter = document.getElementById('league-filter').value;
-            const resultFilter = document.getElementById('result-filter').value;
-            const recentGames = document.getElementById('recent-games').value;
+        const champInput = document.getElementById(`champ-${playerId}`);
+        if (champInput) {
+            champInput.addEventListener('input', () => {
+                let currentFilteredData = df;
+                const yearFilter = document.getElementById('year-filter').value;
+                const leagueFilter = document.getElementById('league-filter').value;
+                const resultFilter = document.getElementById('result-filter').value;
+                const recentGames = document.getElementById('recent-games').value;
 
-            console.log('champInput - Dados iniciais:', currentFilteredData.length);
-            if (yearFilter) {
-                currentFilteredData = currentFilteredData.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
-                console.log('champInput - Após filtro de ano:', currentFilteredData.length);
-            }
-            if (leagueFilter) {
-                currentFilteredData = currentFilteredData.filter(row => row.league === leagueFilter);
-                console.log('champInput - Após filtro de liga:', currentFilteredData.length);
-            }
-            if (resultFilter) {
-                currentFilteredData = currentFilteredData.filter(row => row.result === resultFilter);
-                console.log('champInput - Após filtro de resultado:', currentFilteredData.length);
-            }
-            if (recentGames && recentGames !== 'Todos os Jogos') {
-                currentFilteredData = currentFilteredData.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
-                console.log('champInput - Após filtro de jogos recentes:', currentFilteredData.length);
-            }
-            currentFilteredData = currentFilteredData.filter(row => row.playername === playerName);
-            console.log('champInput - Após filtro de jogador:', currentFilteredData.length);
+                if (yearFilter) {
+                    currentFilteredData = currentFilteredData.filter(row => new Date(row.date).getFullYear().toString() === yearFilter);
+                }
+                if (leagueFilter) {
+                    currentFilteredData = currentFilteredData.filter(row => row.league === leagueFilter);
+                }
+                if (resultFilter) {
+                    currentFilteredData = currentFilteredData.filter(row => row.result === resultFilter);
+                }
+                currentFilteredData = currentFilteredData.filter(row => row.playername === playerName);
 
-            if (isConfrontoDireto && otherPlayerName) {
-                const playerLane = getPlayerLane(playerName, df);
-                const otherPlayerLane = getPlayerLane(otherPlayerName, df);
-                const adversaCol = `adversa_player_${otherPlayerLane}`;
-                currentFilteredData = currentFilteredData.filter(row => 
-                    row.position.toLowerCase() === playerLane && row[adversaCol] === otherPlayerName
-                );
-                console.log('champInput - Após filtro de confronto direto:', currentFilteredData.length);
-            }
+                if (isConfrontoDireto && otherPlayerName) {
+                    const playerLane = getPlayerLane(playerName, df);
+                    const otherPlayerLane = getPlayerLane(otherPlayerName, df);
+                    const adversaCol = `adversa_player_${otherPlayerLane}`;
+                    currentFilteredData = currentFilteredData.filter(row => 
+                        row.position.toLowerCase() === playerLane && row[adversaCol] === otherPlayerName
+                    );
+                }
 
-            updateChampionImage(`champ-${playerId}`, playerName, currentFilteredData, otherPlayerName);
-        });
-    }
-}, 0);
+                if (recentGames && recentGames !== 'Todos os Jogos') {
+                    currentFilteredData = currentFilteredData.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(recentGames));
+                }
+
+                updateChampionImage(`champ-${playerId}`, playerName, currentFilteredData, otherPlayerName);
+            });
+        }
+    }, 0);
 
     return content;
 }
