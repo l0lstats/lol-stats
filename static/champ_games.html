@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partidas de Campeões</title>
+    <link rel="stylesheet" href="champ_games.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="champ_games.js"></script>
+</head>
+<body>
+    <div id="champ-info">
+        <div class="header-container">
+            <div class="title-wrapper">
+                <h2>Carregando...</h2>
+            </div>
+            <button class="download-btn" onclick="downloadCSV()">Download</button>
+        </div>
+    </div>
+    <div class="table-container">
+        <div id="games-table"></div>
+    </div>
+</body>
+</html>
